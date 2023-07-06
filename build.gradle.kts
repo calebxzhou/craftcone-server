@@ -12,6 +12,14 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    // https://mvnrepository.com/artifact/io.netty/netty-all
+    implementation("io.netty:netty-all:4.1.94.Final")
+    // https://mvnrepository.com/artifact/io.github.microutils/kotlin-logging
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
+// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+    implementation("ch.qos.logback:logback-classic:1.4.8")
+
+
 }
 tasks.test {
     useJUnitPlatform()
