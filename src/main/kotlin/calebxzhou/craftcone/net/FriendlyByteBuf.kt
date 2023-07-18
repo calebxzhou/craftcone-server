@@ -1,7 +1,9 @@
-package calebxzhou.craftcone.server.net
+package calebxzhou.craftcone.net
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
+import io.netty.handler.codec.DecoderException
+import io.netty.handler.codec.EncoderException
 import io.netty.util.ByteProcessor
 import java.io.IOException
 import java.io.InputStream
@@ -12,11 +14,14 @@ import java.nio.channels.FileChannel
 import java.nio.channels.GatheringByteChannel
 import java.nio.channels.ScatteringByteChannel
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+import java.util.*
 
 /**
  * Created  on 2023-07-02,12:43.
  */
 class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
+
     companion object{
         fun getVarLongSize(input: Long): Int {
             for (i in 1..9) {
@@ -34,7 +39,64 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
             }
             return 5
         }
+        private fun getMaxEncodedUtfLength(i: Int): Int {
+            return i * 3
+        }
     }
+
+    fun writeUUID(uUID: UUID): FriendlyByteBuf {
+        writeLong(uUID.mostSignificantBits)
+        writeLong(uUID.leastSignificantBits)
+        return this
+    }
+
+    fun readUUID(): UUID  {
+        return UUID(readLong(), readLong())
+    }
+    fun readUtf(): String  {
+        return this.readUtf(32767)
+    }
+
+    fun readUtf(i: Int): String  {
+        val j: Int = getMaxEncodedUtfLength(i)
+        val k = readVarInt()
+        return if (k > j) {
+            throw DecoderException("The received encoded string buffer length is longer than maximum allowed ($k > $j)")
+        } else if (k < 0) {
+            throw DecoderException("The received encoded string buffer length is less than zero! Weird string!")
+        } else {
+            val string = this.toString(this.readerIndex(), k, StandardCharsets.UTF_8)
+            this.readerIndex(this.readerIndex() + k)
+            if (string!!.length > i) {
+                val var10002 = string.length
+                throw DecoderException("The received string length is longer than maximum allowed ($var10002 > $i)")
+            } else {
+                string
+            }
+        }
+    }
+
+    fun writeUtf(string: String): FriendlyByteBuf {
+        return this.writeUtf(string, 32767)
+    }
+
+    fun writeUtf(string: String, i: Int): FriendlyByteBuf {
+        return if (string.length > i) {
+            val var10002 = string.length
+            throw EncoderException("String too big (was $var10002 characters, max $i)")
+        } else {
+            val bs = string.toByteArray(StandardCharsets.UTF_8)
+            val j: Int = getMaxEncodedUtfLength(i)
+            if (bs.size > j) {
+                throw EncoderException("String too big (was " + bs.size + " bytes encoded, max " + j + ")")
+            } else {
+                writeVarInt(bs.size)
+                this.writeBytes(bs)
+                this
+            }
+        }
+    }
+
     fun readVarInt(): Int {
         var i = 0
         var j = 0

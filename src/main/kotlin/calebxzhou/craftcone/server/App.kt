@@ -1,14 +1,22 @@
 package calebxzhou.craftcone.server
 
-import calebxzhou.craftcone.server.net.ConeServerChannelHandler
+import calebxzhou.craftcone.net.ConeServerChannelHandler
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelOption
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioDatagramChannel
+import mu.KotlinLogging
 
+//目录结构
+/*
+data
+    player
 
+ */
+
+val LOG = KotlinLogging.logger {}
 fun main(args: Array<String>) {
 
     val workerGroup: EventLoopGroup = NioEventLoopGroup()
@@ -28,4 +36,5 @@ fun main(args: Array<String>) {
     } finally {
         workerGroup.shutdownGracefully()
     }
+
 }
