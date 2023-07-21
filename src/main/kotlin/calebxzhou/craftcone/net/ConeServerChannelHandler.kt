@@ -17,10 +17,7 @@ object ConeServerChannelHandler : SimpleChannelInboundHandler<DatagramPacket>() 
         //第一个byte
         val packetId = msg.content().readByte().toInt()
         val data = FriendlyByteBuf(msg.content())
-        ConePacketSet.createPacket(packetId,data).process(clientAddr)
-        /*if(!clientAddrs.contains(clientAddr)){
-            handleNewConnection(clientAddr)
-        }*/
+        ConePacketSet.createPacketAndProcess(packetId,clientAddr,data)
         try{
             /*
             给房间里每个客户端发包
