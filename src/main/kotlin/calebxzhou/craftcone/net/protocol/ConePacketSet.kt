@@ -1,77 +1,47 @@
 package calebxzhou.craftcone.net.protocol
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.account.LoginRequestPacket
-import calebxzhou.craftcone.net.protocol.account.LoginResponsePacket
-import calebxzhou.craftcone.net.protocol.game.ConeChatPacket
-import calebxzhou.craftcone.net.protocol.game.ConePlayerJoinPacket
-import calebxzhou.craftcone.net.protocol.game.ConePlayerQuitPacket
-import calebxzhou.craftcone.net.protocol.game.ConeSetBlockPacket
+import calebxzhou.craftcone.net.protocol.game.ChatC2CPacket
+import calebxzhou.craftcone.net.protocol.room.PlayerJoinRoomC2SPacket
+import calebxzhou.craftcone.net.protocol.room.PlayerLeaveRoomC2SPacket
+import calebxzhou.craftcone.net.protocol.game.SetBlockC2CPacket
 
 /**
  * Created  on 2023-07-14,8:55.
  */
 object ConePacketSet {
-    object InGame{
-        fun getPacketId(packetClass: Class<out ConeInGamePacket>): Int? {
-            return classToId[packetClass]
-        }
-        fun createPacket(packetId : Int, data : FriendlyByteBuf): ConeInGamePacket {
-            return idToReader[packetId].invoke(data)
-        }
-        private val classToId = linkedMapOf<Class<out ConeInGamePacket>, Int>()
-        private val idToReader = arrayListOf<(FriendlyByteBuf) -> ConeInGamePacket>()
-        init {
-            addPackets(
-                Pair(ConeSetBlockPacket::class.java,ConeSetBlockPacket::read),
-                Pair(ConeChatPacket::class.java,ConeChatPacket::read),
-                Pair(ConePlayerJoinPacket::class.java,ConePlayerJoinPacket::read),
-                Pair(ConePlayerQuitPacket::class.java,ConePlayerQuitPacket::read),
-            )
-        }
-        private fun addPackets(vararg packetClassAndReader: Pair<Class<out ConeInGamePacket>,(FriendlyByteBuf) -> ConeInGamePacket>){
-            packetClassAndReader.forEach {
-                val packetClass = it.first
-                val packetReader = it.second
-                addPacket(packetClass,packetReader)
-            }
-        }
-        private fun addPacket(packetClass: Class<out ConeInGamePacket>, packetReader : (FriendlyByteBuf) -> ConeInGamePacket){
-            val size = idToReader.size
-            classToId[packetClass] = size
-            idToReader += packetReader
+    fun getPacketId(packetClass: Class<out InGamePacket>): Int? {
+        return classToId[packetClass]
+    }
+
+    fun createPacket(packetId: Int, data: FriendlyByteBuf): InGamePacket {
+        return idToReader[packetId].invoke(data)
+    }
+
+    private val classToId = linkedMapOf<Class<out InGamePacket>, Int>()
+    private val idToReader = arrayListOf<(FriendlyByteBuf) -> InGamePacket>()
+
+    init {
+        addPackets(
+            Pair(SetBlockC2CPacket::class.java, SetBlockC2CPacket::read),
+            Pair(ChatC2CPacket::class.java, ChatC2CPacket::read),
+            Pair(PlayerJoinRoomC2SPacket::class.java, PlayerJoinRoomC2SPacket::read),
+            Pair(PlayerLeaveRoomC2SPacket::class.java, PlayerLeaveRoomC2SPacket::read),
+        )
+    }
+
+    private fun addPackets(vararg packetClassAndReader: Pair<Class<out InGamePacket>, (FriendlyByteBuf) -> InGamePacket>) {
+        packetClassAndReader.forEach {
+            val packetClass = it.first
+            val packetReader = it.second
+            addPacket(packetClass, packetReader)
         }
     }
 
-    object OutGame{
-        private val classToId = linkedMapOf<Class<out ConeOutGamePacket>, Int>()
-        private val idToReader = arrayListOf<(FriendlyByteBuf) -> ConeOutGamePacket>()
-        fun getPacketId(packetClass: Class<out ConeOutGamePacket>): Int? {
-            return classToId[packetClass]
-        }
-        fun createPacket(packetId : Int, data : FriendlyByteBuf): ConeOutGamePacket {
-            return idToReader[packetId].invoke(data)
-        }
-        init {
-            addPackets(
-                Pair(LoginRequestPacket::class.java,LoginRequestPacket::read),
-                Pair(LoginResponsePacket::class.java,LoginResponsePacket::read),
-            )
-        }
-        private fun addPackets(vararg packetClassAndReader: Pair<Class<out ConeOutGamePacket>,(FriendlyByteBuf) -> ConeOutGamePacket>){
-            packetClassAndReader.forEach {
-                val packetClass = it.first
-                val packetReader = it.second
-                addPacket(packetClass,packetReader)
-            }
-        }
-        private fun addPacket(packetClass: Class<out ConeOutGamePacket>, packetReader : (FriendlyByteBuf) -> ConeOutGamePacket){
-            val size = idToReader.size
-            classToId[packetClass] = size
-            idToReader += packetReader
-        }
-        
+    private fun addPacket(packetClass: Class<out InGamePacket>, packetReader: (FriendlyByteBuf) -> InGamePacket) {
+        val size = idToReader.size
+        classToId[packetClass] = size
+        idToReader += packetReader
     }
-    
 
 }

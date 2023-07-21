@@ -1,8 +1,7 @@
 package calebxzhou.craftcone.net
 
-import calebxzhou.craftcone.net.protocol.ConeOutGamePacket
+import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ConePacketSet
-import calebxzhou.craftcone.net.protocol.ServerProcessablePacket
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
@@ -12,7 +11,7 @@ import io.netty.channel.socket.DatagramPacket
 /**
  * Created  on 2023-07-03,9:14.
  */
-class ConeServerChannelHandler : SimpleChannelInboundHandler<DatagramPacket>() {
+object ConeServerChannelHandler : SimpleChannelInboundHandler<DatagramPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
         val clientAddr = msg.sender()
@@ -24,7 +23,7 @@ class ConeServerChannelHandler : SimpleChannelInboundHandler<DatagramPacket>() {
         val packetId = (byte1 shl 1).toByte().toInt()
 
         val data = FriendlyByteBuf(msg.content())
-        val packet : ServerProcessablePacket = if(bit1 == ConeOutGamePacket.PacketTypeNumber){
+        if(bit1 == C2SPacket.PacketTypeNumber){
             //0代表out game数据包
             ConePacketSet.OutGame.createPacket(packetId, data)
         }else{

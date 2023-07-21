@@ -1,19 +1,20 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.ConeInGamePacket
+import calebxzhou.craftcone.net.protocol.C2CPacket
 
 /**
  * Created  on 2023-07-06,8:48.
  */
-data class ConeChatPacket (
+data class ChatC2CPacket (
     val senderName: String,
     val content: String,
-): ConeInGamePacket {
+): C2CPacket {
+
 
     companion object{
-        fun read(buf: FriendlyByteBuf): ConeChatPacket {
-            return ConeChatPacket(buf.readUtf(),buf.readUtf())
+        fun read(buf: FriendlyByteBuf): ChatC2CPacket {
+            return ChatC2CPacket(buf.readUtf(),buf.readUtf())
         }
     }
     override fun write(buf: FriendlyByteBuf) {
@@ -21,7 +22,5 @@ data class ConeChatPacket (
         buf.writeUtf(content)
     }
 
-    override fun process() {
-    }
 
 }

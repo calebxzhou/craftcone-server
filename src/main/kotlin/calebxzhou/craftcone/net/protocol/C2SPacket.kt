@@ -3,9 +3,10 @@ package calebxzhou.craftcone.net.protocol
 import java.net.InetSocketAddress
 
 /**
- * Created  on 2023-07-13,20:33.
+ * Created  on 2023-06-29,20:43.
  */
-interface ServerProcessablePacket {
-    //处理包
+//client -> server包
+interface C2SPacket{
+    //处理数据
     fun process(clientAddress: InetSocketAddress)
 }
