@@ -1,6 +1,5 @@
 package calebxzhou.craftcone.net
 
-import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ConePacketSet
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
@@ -16,21 +15,9 @@ object ConeServerChannelHandler : SimpleChannelInboundHandler<DatagramPacket>() 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
         val clientAddr = msg.sender()
         //第一个byte
-        val byte1 = msg.content().readByte().toInt()
-        //第1个bit（包类型，in game/out game）
-        val bit1 = byte1 shr 7
-        //第2~8个bit（包ID）
-        val packetId = (byte1 shl 1).toByte().toInt()
-
+        val packetId = msg.content().readByte().toInt()
         val data = FriendlyByteBuf(msg.content())
-        if(bit1 == C2SPacket.PacketTypeNumber){
-            //0代表out game数据包
-            ConePacketSet.OutGame.createPacket(packetId, data)
-        }else{
-            //1代表in game数据包
-            ConePacketSet.InGame.createPacket(packetId,data)
-        }
-        packet.process(clientAddr)
+        ConePacketSet.createPacket(packetId,data).process(clientAddr)
         /*if(!clientAddrs.contains(clientAddr)){
             handleNewConnection(clientAddr)
         }*/
