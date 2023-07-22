@@ -14,6 +14,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel
  */
 object ConeServer {
     val onlinePlayers = arrayListOf<ConePlayer>()
+
     lateinit var channelFuture: ChannelFuture
 
     private val workerGroup: EventLoopGroup = NioEventLoopGroup()

@@ -24,37 +24,43 @@ object ConePacketSet {
 
     /**C2S**/
     //包id和read方法对应map c2s读包用
-    private val c2s_idToPacketReader = arrayListOf<(FriendlyByteBuf) -> C2SPacket>()
+    private val c2s_idToPacketReader = linkedMapOf<Int,(FriendlyByteBuf) -> C2SPacket>()
     private fun registerC2SPacket(reader: (FriendlyByteBuf) -> C2SPacket) {
+        c2s_idToPacketReader += Pair(idToPacketType.size,reader)
         idToPacketType += PacketType.C2S
-        c2s_idToPacketReader += reader
     }
 
     /**S2C**/
     private fun registerS2CPacket(packetClass: Class<out S2CPacket>) {
-        idToPacketType += PacketType.S2C
         classToPacketId += Pair(packetClass, idToPacketType.size)
+        idToPacketType += PacketType.S2C
     }
 
     /**C2C**/
-    private val c2c_idToPacketReader = arrayListOf<(FriendlyByteBuf) -> C2CPacket>()
+    private val c2c_idToPacketReader = linkedMapOf<Int,(FriendlyByteBuf) -> C2CPacket>()
 
     //idToPacketClassReader
     private fun registerC2CPacket(packetClass: Class<out C2CPacket>, reader: (FriendlyByteBuf) -> C2CPacket) {
-        idToPacketType += PacketType.C2C
         classToPacketId += Pair(packetClass, idToPacketType.size)
-        c2c_idToPacketReader += reader
+        c2c_idToPacketReader += Pair(idToPacketType.size,reader)
+        idToPacketType += PacketType.C2C
     }
 
     fun createPacketAndProcess(packetId: Int, clientAddr: InetSocketAddress, data: FriendlyByteBuf) {
         val packet = try {
             when (idToPacketType[packetId]) {
                 PacketType.C2S -> {
-                    c2s_idToPacketReader[packetId].invoke(data)
+                    c2s_idToPacketReader[packetId]?.invoke(data)?:let{
+                        LOG.error("找不到C2S包ID$packetId ")
+                        return
+                    }
                 }
 
                 PacketType.C2C -> {
-                    c2c_idToPacketReader[packetId].invoke(data)
+                    c2c_idToPacketReader[packetId]?.invoke(data)?:let {
+                        LOG.error("找不到C2C包ID$packetId ")
+                        return
+                    }
                 }
 
                 else -> {
@@ -62,11 +68,16 @@ object ConePacketSet {
                     return
                 }
             }
-        } catch (e: ArrayIndexOutOfBoundsException) {
-            LOG.error("找不到包ID$packetId")
+        } catch (e: IndexOutOfBoundsException) {
+            LOG.error("读包ID$packetId 错误 ${e.localizedMessage}")
             return
         }
-        packet.process(clientAddr)
+
+        try {
+            packet.process(clientAddr)
+        } catch (e: Exception) {
+            LOG.error("处理包ID$packetId 错误",e)
+        }
     }
 
     fun getPacketId(packetClass: Class<out Packet>): Int? {

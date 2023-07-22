@@ -31,7 +31,7 @@ data class RegisterC2SPacket(
             return
         }
 
-        Files.createDirectory(pDir)
+        Files.createDirectories(pDir)
         Files.writeString(pDir.resolve(PWD_FILE),pwd)
         ConeNetManager.sendPacket(RegisterS2CPacket(true,""),clientAddress)
 

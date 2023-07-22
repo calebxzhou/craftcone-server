@@ -2,6 +2,7 @@ package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2CPacket
+import java.net.InetSocketAddress
 
 /**
  * Created  on 2023-06-29,20:46.
@@ -27,6 +28,10 @@ data class SetBlockC2CPacket(
                 buf.readVarInt(),
             )
         }
+    }
+
+    override fun process(clientAddress: InetSocketAddress) {
+        TODO("Not yet implemented")
     }
 
     override fun write(buf: FriendlyByteBuf) {

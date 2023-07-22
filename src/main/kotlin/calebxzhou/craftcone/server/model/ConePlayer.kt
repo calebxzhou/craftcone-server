@@ -11,12 +11,11 @@ import kotlin.io.path.Path
  */
 data class ConePlayer(
     val pid: UUID,
-    val pName: String,
     val pwd: String,
     val addr: InetSocketAddress
 ){
     companion object{
-        const val PWD_FILE = "password.day"
+        const val PWD_FILE = "password.dat"
         fun getProfilePath(pid: UUID): Path {
             return Path("$DATA_DIR/players/$pid")
         }

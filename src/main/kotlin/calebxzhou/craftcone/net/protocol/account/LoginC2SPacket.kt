@@ -4,11 +4,13 @@ import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
+import calebxzhou.craftcone.server.ConeServer
 import calebxzhou.craftcone.server.model.ConePlayer
 import calebxzhou.craftcone.server.model.ConePlayer.Companion.PWD_FILE
 import java.io.FileNotFoundException
 import java.net.InetSocketAddress
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.util.*
 
 /**
@@ -34,10 +36,16 @@ data class LoginC2SPacket(
             val pwd = Files.readString(ConePlayer.getProfilePath(pid).resolve(PWD_FILE))
             if(this.pwd == pwd){
                 packet = LoginS2CPacket(true,"")
+                ConeServer.onlinePlayers += ConePlayer(pid,pwd,clientAddress)
             }
-        }catch (e: FileNotFoundException){
+        }
+        catch (e: FileNotFoundException){
             packet = LoginS2CPacket(false,"玩家不存在")
-        }catch (e: Exception) {
+        }
+        catch (e: NoSuchFileException){
+            packet = LoginS2CPacket(false,"玩家不存在")
+        }
+        catch (e: Exception) {
             packet = LoginS2CPacket(false,e.localizedMessage)
         }
         ConeNetManager.sendPacket(packet,clientAddress)

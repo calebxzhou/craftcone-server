@@ -3,6 +3,7 @@ package calebxzhou.craftcone.net.protocol.game
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2CPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
+import java.net.InetSocketAddress
 
 /**
  * Created  on 2023-07-13,10:21.
@@ -18,6 +19,11 @@ data class PlayerMoveC2CPacket(
             return PlayerMoveC2CPacket(buf.readVarInt(),buf.readFloat(),buf.readFloat(),buf.readFloat())
         }
     }
+
+    override fun process(clientAddress: InetSocketAddress) {
+        TODO("Not yet implemented")
+    }
+
     override fun write(buf: FriendlyByteBuf) {
         buf.writeVarInt(tempPid)
         buf.writeFloat(x)
