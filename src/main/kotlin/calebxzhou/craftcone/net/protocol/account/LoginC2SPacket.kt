@@ -31,12 +31,14 @@ data class LoginC2SPacket(
 
     }
     override fun process(clientAddress: InetSocketAddress) {
-        var packet = LoginS2CPacket(false,".")
+        var packet: LoginS2CPacket
         try {
             val pwd = Files.readString(ConePlayer.getProfilePath(pid).resolve(PWD_FILE))
             if(this.pwd == pwd){
                 packet = LoginS2CPacket(true,"")
                 ConeServer.onlinePlayers += ConePlayer(pid,pwd,clientAddress)
+            }else{
+                packet = LoginS2CPacket(false,"密码错误")
             }
         }
         catch (e: FileNotFoundException){

@@ -95,16 +95,14 @@ object ConePacketSet {
         registerC2SPacket(RegisterC2SPacket::read)
         registerS2CPacket(RegisterS2CPacket::class.java)
 
+        registerC2CPacket(ChatC2CPacket::class.java, ChatC2CPacket::read)
+        registerC2CPacket(PlayerMoveC2CPacket::class.java, PlayerMoveC2CPacket::read)
+        registerC2CPacket(SetBlockC2CPacket::class.java, SetBlockC2CPacket::read)
+
         registerC2SPacket(PlayerJoinRoomC2SPacket::read)
 
         registerC2SPacket(PlayerLeaveRoomC2SPacket::read)
 
-        registerS2CPacket(CheckPlayerExistS2CPacket::class.java)
-        registerS2CPacket(CheckPlayerExistS2CPacket::class.java)
-
-        registerC2CPacket(ChatC2CPacket::class.java, ChatC2CPacket::read)
-        registerC2CPacket(PlayerMoveC2CPacket::class.java, PlayerMoveC2CPacket::read)
-        registerC2CPacket(SetBlockC2CPacket::class.java, SetBlockC2CPacket::read)
 
     }
 

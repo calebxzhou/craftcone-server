@@ -2,6 +2,7 @@ package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2CPacket
+import calebxzhou.craftcone.net.protocol.ReadablePacket
 import java.net.InetSocketAddress
 
 /**
@@ -13,8 +14,8 @@ data class ChatC2CPacket (
 ): C2CPacket {
 
 
-    companion object{
-        fun read(buf: FriendlyByteBuf): ChatC2CPacket {
+    companion object : ReadablePacket{
+        override fun read(buf: FriendlyByteBuf): ChatC2CPacket {
             return ChatC2CPacket(buf.readUtf(),buf.readUtf())
         }
     }
