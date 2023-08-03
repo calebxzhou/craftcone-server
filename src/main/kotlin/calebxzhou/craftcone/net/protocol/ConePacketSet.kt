@@ -4,7 +4,7 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.account.*
 import calebxzhou.craftcone.net.protocol.game.*
 import calebxzhou.craftcone.net.protocol.room.*
-import calebxzhou.craftcone.server.LOG
+import calebxzhou.craftcone.server.logger
 import java.net.InetSocketAddress
 
 /**
@@ -48,32 +48,32 @@ object ConePacketSet {
             when (idToPacketType[packetId]) {
                 PacketType.C2S -> {
                     c2s_idToPacketReader[packetId]?.invoke(data)?:let{
-                        LOG.error("找不到C2S包ID$packetId ")
+                        logger.error("找不到C2S包ID$packetId ")
                         return
                     }
                 }
 
                 PacketType.C2C -> {
                     c2c_idToPacketReader[packetId]?.invoke(data)?:let {
-                        LOG.error("找不到C2C包ID$packetId ")
+                        logger.error("找不到C2C包ID$packetId ")
                         return
                     }
                 }
 
                 else -> {
-                    LOG.error("服务器不应该收到S2C数据包（ID=$packetId）")
+                    logger.error("服务器不应该收到S2C数据包（ID=$packetId）")
                     return
                 }
             }
         } catch (e: IndexOutOfBoundsException) {
-            LOG.error("读包ID$packetId 错误 ${e.localizedMessage}")
+            logger.error("读包ID$packetId 错误 ${e.localizedMessage}")
             return
         }
 
         try {
             packet.process(clientAddr)
         } catch (e: Exception) {
-            LOG.error("处理包ID$packetId 错误",e)
+            logger.error("处理包ID$packetId 错误",e)
         }
     }
 

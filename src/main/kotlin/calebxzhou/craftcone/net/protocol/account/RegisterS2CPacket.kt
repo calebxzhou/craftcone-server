@@ -1,6 +1,7 @@
 package calebxzhou.craftcone.net.protocol.account
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.protocol.OkDataPacket
 import calebxzhou.craftcone.net.protocol.S2CPacket
 
 /**
@@ -9,15 +10,15 @@ import calebxzhou.craftcone.net.protocol.S2CPacket
 //响应
 data class RegisterS2CPacket(
     //是否成功
-    val isSuccess: Boolean,
+    override val ok: Boolean,
     //错误信息
-    val msg: String,
-) : S2CPacket {
+    override val data: String,
+) : S2CPacket,OkDataPacket {
 
     override fun write(buf: FriendlyByteBuf) {
         //for server
-        buf.writeBoolean(isSuccess)
-        buf.writeUtf(msg)
+        buf.writeBoolean(ok)
+        buf.writeUtf(data)
     }
 
 

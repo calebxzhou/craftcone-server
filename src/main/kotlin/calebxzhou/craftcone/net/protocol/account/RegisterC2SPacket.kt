@@ -4,7 +4,6 @@ import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
-import calebxzhou.craftcone.server.PlayerManager
 import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
 import java.util.*
@@ -24,7 +23,7 @@ data class RegisterC2SPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        val packet = if(PlayerManager.register(ConePlayer(pid,pwd,clientAddress)))
+        val packet = if(ConePlayer.register(ConePlayer(pid,pwd,clientAddress)))
             RegisterS2CPacket(true,"")
         else
             RegisterS2CPacket(false,"已注册了")

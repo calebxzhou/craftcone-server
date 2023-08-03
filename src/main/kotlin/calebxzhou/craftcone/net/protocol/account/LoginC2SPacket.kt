@@ -4,7 +4,6 @@ import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
-import calebxzhou.craftcone.server.PlayerManager
 import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
 import java.util.*
@@ -27,7 +26,8 @@ data class LoginC2SPacket(
 
     }
     override fun process(clientAddress: InetSocketAddress) {
-        val packet = if(PlayerManager.validatePassword(ConePlayer(pid,pwd,clientAddress)))
+        val player = ConePlayer(pid,pwd,clientAddress)
+        val packet = if(ConePlayer.login(player))
             LoginS2CPacket(true,"")
         else
             LoginS2CPacket(false,"密码错误")

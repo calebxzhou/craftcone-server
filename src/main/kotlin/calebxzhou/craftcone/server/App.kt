@@ -9,7 +9,7 @@ data
 
  */
 
-val LOG = KotlinLogging.logger {}
+val logger = KotlinLogging.logger {}
 fun main(args: Array<String>) {
     ConeServer.start(19198)
 }

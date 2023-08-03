@@ -1,9 +1,10 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.misc.UuidSerializer
-import calebxzhou.craftcone.server.Consts.DATA_DIR
-import calebxzhou.craftcone.server.LOG
+import calebxzhou.craftcone.server.DATA_DIR
+import calebxzhou.craftcone.server.logger
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Path
@@ -63,17 +64,21 @@ data class ConeRoom(
         //玩家加入房间
         fun playerJoinRoom(player: ConePlayer, rid: UUID) {
             val room = onlineRooms[rid]?:let{
-                LOG.warn { "${player.pid} 请求加入不在线的房间$rid " }
+                logger.warn { "${player.pid} 请求加入不在线的房间$rid " }
                 return
             }
             room.players += player
             addrToPlayingRoom += Pair(player.addr,room)
-            LOG.info { "${player.pid} 加入了房间 $rid" }
+            logger.info { "${player.pid} 加入了房间 $rid" }
         }
 
-        fun load(rid: UUID) {
-            Files.readString(getProfilePath(rid).resolve("info.dat"))
-
+        //载入房间
+        fun load(rid: UUID) :ConeRoom{
+            val infoStr = Files.readString(getProfilePath(rid).resolve("info.dat"))
+            val room = Json.decodeFromString<ConeRoom>(infoStr)
+            onlineRooms += Pair(rid,room)
+            logger.info { "$rid ${room.rName} 房间已载入" }
+            return room
         }
 
     }

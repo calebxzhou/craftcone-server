@@ -4,7 +4,6 @@ import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
-import calebxzhou.craftcone.server.PlayerManager
 import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
 import java.util.*
@@ -24,8 +23,7 @@ data class CheckPlayerExistC2SPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        val exists = PlayerManager.isRegistered(ConePlayer(pid,"",clientAddress))
-        ConeNetManager.sendPacket(CheckPlayerExistS2CPacket(exists),clientAddress)
+        ConeNetManager.sendPacket(CheckPlayerExistS2CPacket(ConePlayer.isRegistered(pid)),clientAddress)
     }
 
 }
