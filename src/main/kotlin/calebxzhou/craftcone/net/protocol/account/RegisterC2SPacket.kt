@@ -4,11 +4,9 @@ import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
-import calebxzhou.craftcone.server.LOG
-import calebxzhou.craftcone.server.model.ConePlayer
-import calebxzhou.craftcone.server.model.ConePlayer.Companion.PWD_FILE
+import calebxzhou.craftcone.server.PlayerManager
+import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
-import java.nio.file.Files
 import java.util.*
 
 /**
@@ -26,17 +24,11 @@ data class RegisterC2SPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        val pDir = ConePlayer.getProfilePath(pid)
-        if(Files.exists(pDir)){
-            ConeNetManager.sendPacket(RegisterS2CPacket(false,"已注册过"),clientAddress)
-            return
-        }
-
-        Files.createDirectories(pDir)
-        Files.writeString(pDir.resolve(PWD_FILE),pwd)
-        LOG.info { "$pid 已注册" }
-        ConeNetManager.sendPacket(RegisterS2CPacket(true,""),clientAddress)
-
+        val packet = if(PlayerManager.register(ConePlayer(pid,pwd,clientAddress)))
+            RegisterS2CPacket(true,"")
+        else
+            RegisterS2CPacket(false,"已注册了")
+        ConeNetManager.sendPacket(packet,clientAddress)
 
     }
 

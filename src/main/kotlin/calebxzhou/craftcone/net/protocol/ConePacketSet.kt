@@ -101,6 +101,7 @@ object ConePacketSet {
         registerC2SPacket(PlayerCreateRoomC2SPacket::read)
         registerS2CPacket(PlayerCreateRoomS2CPacket::class.java)
         registerC2SPacket(PlayerJoinRoomC2SPacket::read)
+        registerS2CPacket(PlayerJoinRoomS2CPacket::class.java)
         registerC2SPacket(PlayerLeaveRoomC2SPacket::read)
         registerS2CPacket(RoomInfoS2CPacket::class.java)
 

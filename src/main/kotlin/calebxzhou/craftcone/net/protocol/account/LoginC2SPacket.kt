@@ -4,13 +4,9 @@ import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
-import calebxzhou.craftcone.server.LOG
-import calebxzhou.craftcone.server.model.ConePlayer
-import calebxzhou.craftcone.server.model.ConePlayer.Companion.PWD_FILE
-import java.io.FileNotFoundException
+import calebxzhou.craftcone.server.PlayerManager
+import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
-import java.nio.file.Files
-import java.nio.file.NoSuchFileException
 import java.util.*
 
 /**
@@ -31,26 +27,10 @@ data class LoginC2SPacket(
 
     }
     override fun process(clientAddress: InetSocketAddress) {
-        var packet: LoginS2CPacket
-        try {
-            val pwd = Files.readString(ConePlayer.getProfilePath(pid).resolve(PWD_FILE))
-            if(this.pwd == pwd){
-                packet = LoginS2CPacket(true,"")
-                LOG.info("$pid 已登录")
-                ConePlayer.addOnlinePlayer( ConePlayer(pid,pwd,clientAddress) )
-            }else{
-                packet = LoginS2CPacket(false,"密码错误")
-            }
-        }
-        catch (e: FileNotFoundException){
-            packet = LoginS2CPacket(false,"玩家不存在")
-        }
-        catch (e: NoSuchFileException){
-            packet = LoginS2CPacket(false,"玩家不存在")
-        }
-        catch (e: Exception) {
-            packet = LoginS2CPacket(false,e.localizedMessage)
-        }
+        val packet = if(PlayerManager.validatePassword(ConePlayer(pid,pwd,clientAddress)))
+            LoginS2CPacket(true,"")
+        else
+            LoginS2CPacket(false,"密码错误")
         ConeNetManager.sendPacket(packet,clientAddress)
 
 

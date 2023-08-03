@@ -3,6 +3,9 @@ package calebxzhou.craftcone.net.protocol.room
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
+import calebxzhou.craftcone.server.LOG
+import calebxzhou.craftcone.server.PlayerManager
+import calebxzhou.craftcone.server.RoomManager
 import java.net.InetSocketAddress
 import java.util.*
 
@@ -22,6 +25,16 @@ data class PlayerJoinRoomC2SPacket(
 
     override fun process(clientAddress: InetSocketAddress) {
         //将玩家放入room playerList。并写回room info
+        val player = PlayerManager.getByAddr(clientAddress)?:let{
+            LOG.warn { "$clientAddress 未登录就请求加入房间了" }
+            return
+        }
+        //房间不在线，检查是否存在
+        if (!RoomManager.onlineRooms.containsKey(rid)){
+            //存在则载入房间
+
+            //不存在提示失败
+        }
     }
 
 
