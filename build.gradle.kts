@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.8.21"
+    kotlin("plugin.serialization") version "1.8.21"
     application
 }
 
@@ -18,7 +19,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:3.0.5")
 // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.4.8")
-
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 
 }
 tasks.test {

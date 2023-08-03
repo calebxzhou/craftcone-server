@@ -1,6 +1,10 @@
 package calebxzhou.craftcone.server.entity
 
+import calebxzhou.craftcone.misc.UuidSerializer
 import calebxzhou.craftcone.server.Consts.DATA_DIR
+import calebxzhou.craftcone.server.LOG
+import kotlinx.serialization.Serializable
+import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -9,11 +13,14 @@ import kotlin.io.path.Path
 /**
  * Created  on 2023-08-03,13:20.
  */
+@Serializable
 data class ConeRoom(
+    @Serializable(UuidSerializer::class)
     //房间ID
     val rid: UUID,
     //房间名
     val rName: String,
+    @Serializable(UuidSerializer::class)
     //房主id
     val ownerUid: UUID,
     //mod加载器？Fabric：Forge
@@ -30,12 +37,44 @@ data class ConeRoom(
     val profilePath = getProfilePath(rid)
     //正在游玩 当前房间的 玩家list
     val players = arrayListOf<ConePlayer>()
+
+
+
+
     companion object{
+        //全部在线房间
+        private val onlineRooms = hashMapOf<UUID,ConeRoom>()
+        //玩家ip to 玩家正在游玩的房间
+        val addrToPlayingRoom = hashMapOf<InetSocketAddress, ConeRoom>()
+
+        //获取房间档案path
         fun getProfilePath(rid:UUID): Path {
             return  Path("$DATA_DIR/rooms/$rid")
         }
+        //房间是否在线
+        fun isOnline(rid: UUID) :Boolean{
+            return onlineRooms.containsKey(rid)
+        }
+        //房间是否存在
         fun exists(rid: UUID) :Boolean{
             return Files.exists(getProfilePath(rid))
         }
+
+        //玩家加入房间
+        fun playerJoinRoom(player: ConePlayer, rid: UUID) {
+            val room = onlineRooms[rid]?:let{
+                LOG.warn { "${player.pid} 请求加入不在线的房间$rid " }
+                return
+            }
+            room.players += player
+            addrToPlayingRoom += Pair(player.addr,room)
+            LOG.info { "${player.pid} 加入了房间 $rid" }
+        }
+
+        fun load(rid: UUID) {
+            Files.readString(getProfilePath(rid).resolve("info.dat"))
+
+        }
+
     }
 }
