@@ -4,7 +4,7 @@ import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
-import calebxzhou.craftcone.server.ConeServer
+import calebxzhou.craftcone.server.LOG
 import calebxzhou.craftcone.server.model.ConePlayer
 import calebxzhou.craftcone.server.model.ConePlayer.Companion.PWD_FILE
 import java.io.FileNotFoundException
@@ -23,7 +23,7 @@ data class LoginC2SPacket(
     //密码
     val pwd: String,
 ) : C2SPacket{
-    companion object : ReadablePacket{
+    companion object : ReadablePacket<LoginC2SPacket>{
         override fun read(buf: FriendlyByteBuf): LoginC2SPacket {
             //for server
             return LoginC2SPacket(buf.readUUID(),buf.readUtf())
@@ -36,7 +36,8 @@ data class LoginC2SPacket(
             val pwd = Files.readString(ConePlayer.getProfilePath(pid).resolve(PWD_FILE))
             if(this.pwd == pwd){
                 packet = LoginS2CPacket(true,"")
-                ConeServer.onlinePlayers += ConePlayer(pid,pwd,clientAddress)
+                LOG.info("$pid 已登录")
+                ConePlayer.addOnlinePlayer( ConePlayer(pid,pwd,clientAddress) )
             }else{
                 packet = LoginS2CPacket(false,"密码错误")
             }

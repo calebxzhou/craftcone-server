@@ -9,26 +9,30 @@ import java.net.InetSocketAddress
  * Created  on 2023-07-13,10:21.
  */
 data class PlayerMoveC2CPacket(
-    val tempPid: Int,
+    val tpid:Int,
     val x:Float,
     val y:Float,
     val z:Float,
+    val w:Float,
+    val p:Float,
 ) : C2CPacket {
-    companion object : ReadablePacket{
+    companion object : ReadablePacket<PlayerMoveC2CPacket>{
         override fun read(buf: FriendlyByteBuf): PlayerMoveC2CPacket {
-            return PlayerMoveC2CPacket(buf.readVarInt(),buf.readFloat(),buf.readFloat(),buf.readFloat())
+            return PlayerMoveC2CPacket(buf.readVarInt(),buf.readFloat(),buf.readFloat(),buf.readFloat(),buf.readFloat(),buf.readFloat())
         }
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        TODO("Not yet implemented")
+        //TODO 转发给同一房间所有人
     }
 
     override fun write(buf: FriendlyByteBuf) {
-        buf.writeVarInt(tempPid)
+        buf.writeVarInt(tpid)
         buf.writeFloat(x)
         buf.writeFloat(y)
         buf.writeFloat(z)
+        buf.writeFloat(w)
+        buf.writeFloat(p)
     }
 
 

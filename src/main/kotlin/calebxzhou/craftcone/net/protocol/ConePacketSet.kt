@@ -2,11 +2,8 @@ package calebxzhou.craftcone.net.protocol
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.account.*
-import calebxzhou.craftcone.net.protocol.game.ChatC2CPacket
-import calebxzhou.craftcone.net.protocol.game.PlayerMoveC2CPacket
-import calebxzhou.craftcone.net.protocol.game.SetBlockC2CPacket
-import calebxzhou.craftcone.net.protocol.room.PlayerJoinRoomC2SPacket
-import calebxzhou.craftcone.net.protocol.room.PlayerLeaveRoomC2SPacket
+import calebxzhou.craftcone.net.protocol.game.*
+import calebxzhou.craftcone.net.protocol.room.*
 import calebxzhou.craftcone.server.LOG
 import java.net.InetSocketAddress
 
@@ -97,11 +94,16 @@ object ConePacketSet {
 
         registerC2CPacket(ChatC2CPacket::class.java, ChatC2CPacket::read)
         registerC2CPacket(PlayerMoveC2CPacket::class.java, PlayerMoveC2CPacket::read)
+        registerC2SPacket(SaveBlockC2SPacket::read)
         registerC2CPacket(SetBlockC2CPacket::class.java, SetBlockC2CPacket::read)
+        registerC2SPacket(SetBlockStateC2SPacket::read)
 
+        registerC2SPacket(PlayerCreateRoomC2SPacket::read)
+        registerS2CPacket(PlayerCreateRoomS2CPacket::class.java)
         registerC2SPacket(PlayerJoinRoomC2SPacket::read)
-
         registerC2SPacket(PlayerLeaveRoomC2SPacket::read)
+        registerS2CPacket(RoomInfoS2CPacket::class.java)
+
 
 
     }

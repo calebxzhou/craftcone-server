@@ -16,7 +16,7 @@ import java.util.*
 data class CheckPlayerExistC2SPacket(
     val pid: UUID
 ): C2SPacket{
-    companion object : ReadablePacket{
+    companion object : ReadablePacket<CheckPlayerExistC2SPacket>{
         override fun read(buf: FriendlyByteBuf): CheckPlayerExistC2SPacket {
             return CheckPlayerExistC2SPacket(buf.readUUID())
         }
@@ -26,7 +26,6 @@ data class CheckPlayerExistC2SPacket(
     override fun process(clientAddress: InetSocketAddress) {
         val exists = Files.exists(ConePlayer.getProfilePath(pid))
         ConeNetManager.sendPacket(CheckPlayerExistS2CPacket(exists),clientAddress)
-
     }
 
 }

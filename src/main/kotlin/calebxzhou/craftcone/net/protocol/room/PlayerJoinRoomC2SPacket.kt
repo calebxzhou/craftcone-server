@@ -9,19 +9,19 @@ import java.util.*
 /**
  * Created  on 2023-07-06,8:48.
  */
-data class PlayerJoinRoomC2SPacket (
-    val pid: UUID,
-    val pName: String,
+//玩家请求加入房间
+data class PlayerJoinRoomC2SPacket(
+    val rid: UUID
 ): C2SPacket {
-
-    companion object : ReadablePacket{
+    companion object : ReadablePacket<PlayerJoinRoomC2SPacket>{
         override fun read(buf: FriendlyByteBuf): PlayerJoinRoomC2SPacket {
-            return PlayerJoinRoomC2SPacket(buf.readUUID(),buf.readUtf())
+            return PlayerJoinRoomC2SPacket(buf.readUUID())
         }
+
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-
+        //将玩家放入room playerList。并写回room info
     }
 
 

@@ -2,25 +2,22 @@ package calebxzhou.craftcone.net.protocol.room
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
+import calebxzhou.craftcone.net.protocol.ReadablePacket
 import java.net.InetSocketAddress
-import java.util.*
 
 /**
  * Created  on 2023-07-06,8:48.
  */
-data class PlayerLeaveRoomC2SPacket (
-    val pid: UUID,
-    val pName: String,
-): C2SPacket {
+class PlayerLeaveRoomC2SPacket (): C2SPacket {
 
-    companion object{
-        fun read(buf: FriendlyByteBuf): PlayerLeaveRoomC2SPacket {
-            return PlayerLeaveRoomC2SPacket(buf.readUUID(),buf.readUtf())
+    companion object : ReadablePacket<PlayerLeaveRoomC2SPacket>{
+        override fun read(buf: FriendlyByteBuf): PlayerLeaveRoomC2SPacket {
+            return PlayerLeaveRoomC2SPacket()
         }
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-
+        //找到玩家所在room，从playerList里移除他
     }
 
 

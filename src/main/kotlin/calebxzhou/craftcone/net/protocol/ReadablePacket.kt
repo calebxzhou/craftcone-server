@@ -6,8 +6,8 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 /**
  * Created  on 2023-07-13,17:27.
  */
-//通用数据包
-interface ReadablePacket : Packet{
+//数据可读包
+interface ReadablePacket<T:C2SPacket> : Packet{
     // 读取 数据
-    fun read(buf: FriendlyByteBuf) : Any
+    fun read(buf: FriendlyByteBuf) : T
 }
