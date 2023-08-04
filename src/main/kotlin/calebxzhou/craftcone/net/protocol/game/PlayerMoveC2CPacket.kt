@@ -1,9 +1,12 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.C2CPacket
-import calebxzhou.craftcone.net.protocol.ReadablePacket
-import java.net.InetSocketAddress
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.InRoomProcessable
+import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.net.protocol.BufferReadable
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 
 /**
  * Created  on 2023-07-13,10:21.
@@ -16,15 +19,15 @@ data class PlayerMoveC2CPacket(
     val z:Float,
     val w:Float,
     val p:Float,
-) : C2CPacket {
-    companion object : ReadablePacket<PlayerMoveC2CPacket>{
+) : Packet, InRoomProcessable, BufferWritable {
+    companion object : BufferReadable<PlayerMoveC2CPacket>{
         override fun read(buf: FriendlyByteBuf): PlayerMoveC2CPacket {
             return PlayerMoveC2CPacket(buf.readVarInt(),buf.readFloat(),buf.readFloat(),buf.readFloat(),buf.readFloat(),buf.readFloat())
         }
     }
 
-    override fun process(clientAddress: InetSocketAddress) {
-        C2CPacket.sendPacketToRoomAll(clientAddress,this)
+    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+        playingRoom.broadcastPacket(this)
     }
 
     override fun write(buf: FriendlyByteBuf) {
@@ -35,6 +38,7 @@ data class PlayerMoveC2CPacket(
         buf.writeFloat(w)
         buf.writeFloat(p)
     }
+
 
 
 

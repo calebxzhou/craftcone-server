@@ -1,7 +1,8 @@
 package calebxzhou.craftcone.net.protocol.room
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.S2CPacket
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.Packet
 import java.util.*
 
 /**
@@ -12,8 +13,6 @@ data class RoomInfoS2CPacket(
     val rid: UUID,
     //房间名
     val rName: String,
-    //房主ID
-    val ownerUid: UUID,
     //mod加载器？Fabric：Forge
     val isFabric: Boolean,
     //创造
@@ -22,11 +21,10 @@ data class RoomInfoS2CPacket(
     val blockStateAmount: Int,
     //地图种子
     val seed: Long,
-):S2CPacket{
+): Packet, BufferWritable{
     override fun write(buf: FriendlyByteBuf) {
         buf.writeUUID(rid)
         buf.writeUtf(rName)
-        buf.writeUUID(ownerUid)
         buf.writeBoolean(isFabric)
         buf.writeBoolean(isCreative)
         buf.writeVarInt(blockStateAmount)

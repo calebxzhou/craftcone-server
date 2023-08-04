@@ -1,6 +1,5 @@
 package calebxzhou.craftcone.net
 
-import calebxzhou.craftcone.net.protocol.ConePacketSet
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
@@ -17,19 +16,8 @@ object ConeServerChannelHandler : SimpleChannelInboundHandler<DatagramPacket>() 
         //第一个byte
         val packetId = msg.content().readByte().toInt()
         val data = FriendlyByteBuf(msg.content())
-        ConePacketSet.createPacketAndProcess(packetId,clientAddr,data)
-        try{
-            /*
-            给房间里每个客户端发包
-            clientAddrs.forEach { addr ->
-                if(clientAddr != addr){
-                    msg.retain()
-                    ctx.writeAndFlush(DatagramPacket(msg.content(),addr))
-               }
-            }*/
-        }finally {
-            //ReferenceCountUtil.safeRelease(msg)
-        }
+        ConePacketSet.createAndProcess(clientAddr,packetId,data)
+
     }
 
 

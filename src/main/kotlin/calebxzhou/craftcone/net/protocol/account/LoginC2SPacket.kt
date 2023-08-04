@@ -2,8 +2,9 @@ package calebxzhou.craftcone.net.protocol.account
 
 import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.C2SPacket
-import calebxzhou.craftcone.net.protocol.ReadablePacket
+import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
+import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
 import java.util.*
@@ -17,8 +18,8 @@ data class LoginC2SPacket(
     val pid: UUID,
     //密码
     val pwd: String,
-) : C2SPacket{
-    companion object : ReadablePacket<LoginC2SPacket>{
+): Packet, BeforeLoginProcessable {
+    companion object : BufferReadable<LoginC2SPacket>{
         override fun read(buf: FriendlyByteBuf): LoginC2SPacket {
             //for server
             return LoginC2SPacket(buf.readUUID(),buf.readUtf())
@@ -26,8 +27,7 @@ data class LoginC2SPacket(
 
     }
     override fun process(clientAddress: InetSocketAddress) {
-        val player = ConePlayer(pid,pwd,clientAddress)
-        val packet = if(ConePlayer.login(player))
+        val packet = if(ConePlayer.login(pid,pwd,clientAddress))
             LoginS2CPacket(true,"")
         else
             LoginS2CPacket(false,"密码错误")

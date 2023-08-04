@@ -1,11 +1,13 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.S2CPacket
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.Packet
 
 /**
  * Created  on 2023-07-17,17:16.
  */
+//请求方块响应
 data class ReadBlockS2CPacket(
     //维度ID
     val dimId: Int,
@@ -13,8 +15,7 @@ data class ReadBlockS2CPacket(
     val bpos: Long,
     //状态ID
     val state: Int,
-) : S2CPacket{
-
+) : Packet, BufferWritable {
 
     override fun write(buf: FriendlyByteBuf) {
         buf.writeVarInt(dimId)

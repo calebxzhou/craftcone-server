@@ -1,25 +1,28 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.C2CPacket
-import calebxzhou.craftcone.net.protocol.ReadablePacket
-import java.net.InetSocketAddress
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.InRoomProcessable
+import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.net.protocol.BufferReadable
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 
 /**
  * Created  on 2023-06-29,20:46.
  */
-//c2c 设置单个方块的包（玩家破坏+放置）
+//玩家请求变更方块状态（玩家破坏+放置）
 data class SetBlockC2CPacket(
     //维度ID
-    val levelId: Int,
+    val dimId: Int,
     //方块位置
     val bpos: Long,
-    //状态
-    val state: Int,
-) : C2CPacket {
+    //状态ID
+    val stateId: Int,
+) : Packet, InRoomProcessable, BufferWritable {
 
 
-    companion object : ReadablePacket<SetBlockC2CPacket> {
+    companion object : BufferReadable<SetBlockC2CPacket> {
 
         //从buf读
         override fun read(buf: FriendlyByteBuf): SetBlockC2CPacket {
@@ -30,14 +33,17 @@ data class SetBlockC2CPacket(
             )
         }
     }
-    override fun process(clientAddress: InetSocketAddress) {
-        C2CPacket.sendPacketToRoomAll(clientAddress,this)
-    }
 
     override fun write(buf: FriendlyByteBuf) {
-        buf.writeByte(levelId)
+        buf.writeByte(dimId)
         buf.writeLong(bpos)
-        buf.writeVarInt(state)
+        buf.writeVarInt(stateId)
+    }
+
+
+    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+        playingRoom.broadcastPacket(this)
+        playingRoom.saveBlock(dimId,bpos,stateId)
     }
 
 }

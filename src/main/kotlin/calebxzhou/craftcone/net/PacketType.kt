@@ -1,8 +1,8 @@
-package calebxzhou.craftcone.net.protocol
+package calebxzhou.craftcone.net
 
 /**
  * Created  on 2023-07-21,21:24.
  */
 enum class PacketType {
-    C2S,S2C,C2C
+    READ,WRITE
 }

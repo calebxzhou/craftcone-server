@@ -1,8 +1,9 @@
 package calebxzhou.craftcone.net.protocol.account
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.OkDataPacket
-import calebxzhou.craftcone.net.protocol.S2CPacket
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.net.protocol.ResponsePacket
 
 /**
  * Created  on 2023-07-13,17:39.
@@ -13,7 +14,7 @@ data class LoginS2CPacket(
     override val ok: Boolean,
     //错误信息
     override val data: String,
-) : S2CPacket,OkDataPacket {
+) : Packet, BufferWritable,ResponsePacket {
 
     override fun write(buf: FriendlyByteBuf) {
         //for server

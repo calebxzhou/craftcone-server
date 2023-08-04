@@ -2,8 +2,9 @@ package calebxzhou.craftcone.net.protocol.account
 
 import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.C2SPacket
-import calebxzhou.craftcone.net.protocol.ReadablePacket
+import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
+import calebxzhou.craftcone.net.protocol.BufferReadable
+import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
 import java.util.*
@@ -14,8 +15,8 @@ import java.util.*
 //用户是否存在（已注册）
 data class CheckPlayerExistC2SPacket(
     val pid: UUID
-): C2SPacket{
-    companion object : ReadablePacket<CheckPlayerExistC2SPacket>{
+): Packet,BeforeLoginProcessable{
+    companion object : BufferReadable<CheckPlayerExistC2SPacket>{
         override fun read(buf: FriendlyByteBuf): CheckPlayerExistC2SPacket {
             return CheckPlayerExistC2SPacket(buf.readUUID())
         }

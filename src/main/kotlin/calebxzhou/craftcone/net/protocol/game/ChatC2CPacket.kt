@@ -1,9 +1,12 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.C2CPacket
-import calebxzhou.craftcone.net.protocol.ReadablePacket
-import java.net.InetSocketAddress
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.InRoomProcessable
+import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.net.protocol.BufferReadable
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 
 /**
  * Created  on 2023-07-06,8:48.
@@ -11,22 +14,22 @@ import java.net.InetSocketAddress
 data class ChatC2CPacket (
     val senderName: String,
     val content: String,
-): C2CPacket {
+): Packet, InRoomProcessable, BufferWritable {
 
 
-    companion object : ReadablePacket<ChatC2CPacket>{
+    companion object : BufferReadable<ChatC2CPacket>{
         override fun read(buf: FriendlyByteBuf): ChatC2CPacket {
             return ChatC2CPacket(buf.readUtf(),buf.readUtf())
         }
     }
 
-    override fun process(clientAddress: InetSocketAddress) {
-        C2CPacket.sendPacketToRoomAll(clientAddress,this)
-    }
-
     override fun write(buf: FriendlyByteBuf) {
         buf.writeUtf(senderName)
         buf.writeUtf(content)
+    }
+
+    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+        playingRoom.broadcastPacket(this)
     }
 
 

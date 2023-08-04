@@ -5,7 +5,8 @@ import java.net.InetSocketAddress
 /**
  * Created  on 2023-07-21,22:21.
  */
-interface ServerProcessablePacket {
+//玩家登录前 数据包
+interface BeforeLoginProcessable {
     //处理数据
     fun process(clientAddress: InetSocketAddress)
 }
