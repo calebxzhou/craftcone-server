@@ -1,5 +1,6 @@
 package calebxzhou.craftcone.net.protocol.game
 
+import calebxzhou.craftcone.net.ConeNetManager
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
@@ -10,29 +11,25 @@ import java.net.InetSocketAddress
 /**
  * Created  on 2023-07-17,17:16.
  */
-//保存单个方块的包（setBlock）
-data class SaveBlockC2SPacket(
+data class ReadBlockC2SPacket(
     //维度ID
     val dimId: Int,
     //方块位置
     val bpos: Long,
-    //状态ID
-    val state: Int,
 ) : C2SPacket{
-    companion object : ReadablePacket<SaveBlockC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): SaveBlockC2SPacket {
-            return SaveBlockC2SPacket(buf.readVarInt(),buf.readLong(),buf.readVarInt())
+    companion object : ReadablePacket<ReadBlockC2SPacket>{
+        override fun read(buf: FriendlyByteBuf): ReadBlockC2SPacket {
+            return ReadBlockC2SPacket(buf.readVarInt(),buf.readLong())
         }
 
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        //方块数据写硬盘
         val room  = ConeRoom.getPlayingRoomByAddr(clientAddress)?:let {
             logger.warn { "$clientAddress 未加入任何房间" }
             return
         }
-        room.saveBlock(dimId,bpos,state)
+        ConeNetManager.sendPacket(ReadBlockS2CPacket(dimId,bpos,room.readBlock(dimId,bpos)),clientAddress)
     }
 
 

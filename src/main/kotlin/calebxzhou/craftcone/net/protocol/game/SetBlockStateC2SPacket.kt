@@ -3,6 +3,7 @@ package calebxzhou.craftcone.net.protocol.game
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.C2SPacket
 import calebxzhou.craftcone.net.protocol.ReadablePacket
+import calebxzhou.craftcone.server.entity.ConeRoom
 import java.net.InetSocketAddress
 
 /**
@@ -21,6 +22,7 @@ data class SetBlockStateC2SPacket(
 
     override fun process(clientAddress: InetSocketAddress) {
         //获取所在room，保存方块注册表
+        ConeRoom.getPlayingRoomByAddr(clientAddress)?.saveBlockState(id,bState)
     }
 
 }

@@ -31,7 +31,7 @@ data class SetBlockC2CPacket(
         }
     }
     override fun process(clientAddress: InetSocketAddress) {
-        //TODO 转发给同一房间所有人
+        C2CPacket.sendPacketToRoomAll(clientAddress,this)
     }
 
     override fun write(buf: FriendlyByteBuf) {

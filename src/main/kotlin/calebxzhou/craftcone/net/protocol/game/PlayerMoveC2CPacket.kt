@@ -9,6 +9,7 @@ import java.net.InetSocketAddress
  * Created  on 2023-07-13,10:21.
  */
 data class PlayerMoveC2CPacket(
+    //临时id，仅在单个房间中有用
     val tpid:Int,
     val x:Float,
     val y:Float,
@@ -23,7 +24,7 @@ data class PlayerMoveC2CPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        //TODO 转发给同一房间所有人
+        C2CPacket.sendPacketToRoomAll(clientAddress,this)
     }
 
     override fun write(buf: FriendlyByteBuf) {

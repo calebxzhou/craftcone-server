@@ -21,8 +21,7 @@ data class ChatC2CPacket (
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        //聊天信息 转发给同一房间所有人
-
+        C2CPacket.sendPacketToRoomAll(clientAddress,this)
     }
 
     override fun write(buf: FriendlyByteBuf) {
