@@ -1,7 +1,7 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.misc.UuidSerializer
-import calebxzhou.craftcone.net.ConeNetManager
+import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.room.RoomInfoS2CPacket
 import calebxzhou.craftcone.server.DATA_DIR
@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -49,10 +48,10 @@ data class ConeRoom(
     @Transient
     //正在游玩 当前房间的 玩家list
     val players = hashMapOf<UUID, ConePlayer>()
-
+/*
     @Transient
     //临时id  to 玩家id （网络传输用）
-    val tpidToPid = arrayListOf<UUID>()
+    val tpidToPid = arrayListOf<UUID>()*/
 
     //保存方块状态&id
     fun saveBlockState(id: Int, state: String) {
@@ -72,7 +71,7 @@ data class ConeRoom(
     }
 
     fun broadcastPacket(packet: BufferWritable) {
-        players.forEach { ConeNetManager.sendPacket(packet, it.value.addr) }
+        players.forEach { ConeNetSender.sendPacket(packet, it.value.addr) }
     }
 
     val infoPacket
@@ -84,9 +83,6 @@ data class ConeRoom(
     companion object {
         //全部在线房间
         private val onlineRooms = hashMapOf<UUID, ConeRoom>()
-
-        //玩家ip to 玩家正在游玩的房间
-        private val addrToPlayingRoom = hashMapOf<InetSocketAddress, ConeRoom>()
 
         //获取房间档案path
         fun getProfilePath(rid: UUID): Path {
@@ -104,22 +100,16 @@ data class ConeRoom(
         }
 
         //玩家加入房间
-        fun playerJoinRoom(player: ConePlayer, rid: UUID): ConeRoom? {
+        fun joinRoom(player: ConePlayer, rid: UUID): ConeRoom? {
             val room = onlineRooms[rid] ?: let {
                 logger.warn { "${player.pid} 请求加入不在线的房间$rid " }
                 return null
             }
             room.players += Pair(player.pid, player)
-            addrToPlayingRoom += Pair(player.addr, room)
-            room.tpidToPid += player.pid
             logger.info { "${player.pid} 加入了房间 $rid" }
             return room
         }
 
-        //根据ip地址获取玩家正在玩的房间
-        fun getPlayingRoomByAddr(address: InetSocketAddress): ConeRoom? {
-            return ConePlayer.getByAddr(address)?.nowPlayingRoom
-        }
 
         //载入房间
         fun load(rid: UUID): ConeRoom {
@@ -158,5 +148,9 @@ data class ConeRoom(
     fun write() {
         Files.createDirectories(profilePath)
         Files.writeString(profilePath.resolve(INFO_FILE), Json.encodeToString(this))
+    }
+
+    fun onPlayerLeave(conePlayer: ConePlayer) {
+        players.remove(conePlayer.pid)
     }
 }

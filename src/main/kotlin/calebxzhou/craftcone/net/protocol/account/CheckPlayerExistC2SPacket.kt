@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.account
 
-import calebxzhou.craftcone.net.ConeNetManager
+import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
@@ -24,7 +24,7 @@ data class CheckPlayerExistC2SPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        ConeNetManager.sendPacket(CheckPlayerExistS2CPacket(ConePlayer.isRegistered(pid)),clientAddress)
+        ConeNetSender.sendPacket(CheckPlayerExistS2CPacket(ConePlayer.isRegistered(pid)),clientAddress)
     }
 
 }

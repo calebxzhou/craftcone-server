@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.account
 
-import calebxzhou.craftcone.net.ConeNetManager
+import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -29,7 +29,7 @@ data class RegisterC2SPacket(
             RegisterS2CPacket(true,"")
         else
             RegisterS2CPacket(false,"已注册了")
-        ConeNetManager.sendPacket(packet,clientAddress)
+        ConeNetSender.sendPacket(packet,clientAddress)
 
     }
 

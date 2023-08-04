@@ -1,7 +1,7 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.misc.UuidSerializer
-import calebxzhou.craftcone.net.ConeNetManager
+import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.server.DATA_DIR
 import calebxzhou.craftcone.server.INFO_FILE
 import calebxzhou.craftcone.server.logger
@@ -52,11 +52,13 @@ data class ConePlayer(
 
     //离开房间
     fun leaveRoom() {
-        if(nowPlayingRoom!=null){
-            logger.info { "$this 离开房间 $nowPlayingRoom" }
-            nowPlayingRoom?.players?.remove(pid)
-            nowPlayingRoom=null
+        val room = nowPlayingRoom ?: let {
+            logger.info { "$this 没加入任何房间就请求离开了" }
+            return
         }
+        room.onPlayerLeave(this)
+        nowPlayingRoom=null
+        logger.info { "$this 已离开房间 $nowPlayingRoom" }
 
     }
 
@@ -68,9 +70,9 @@ data class ConePlayer(
         //房间是否在线
         if (ConeRoom.isOnline(rid)){
             //在线则直接加入
-            val room = ConeRoom.playerJoinRoom(this, rid)
+            val room = ConeRoom.joinRoom(this, rid)
             if(room != null){
-                ConeNetManager.sendPacket(room.infoPacket,this)
+                ConeNetSender.sendPacket(room.infoPacket,this)
                 this.nowPlayingRoom = room
                 return true
             }
@@ -80,11 +82,11 @@ data class ConePlayer(
                 //存在则载入房间
                 ConeRoom.load(rid)
                 //然后再加入
-                val room  = ConeRoom.playerJoinRoom(this, rid)?:let {
+                val room  = ConeRoom.joinRoom(this, rid)?:let {
                     logger.warn { "房间$rid 不存在" }
                     return false
                 }
-                ConeNetManager.sendPacket(room.infoPacket,this)
+                ConeNetSender.sendPacket(room.infoPacket,this)
                 this.nowPlayingRoom = room
                 return true
             }else{

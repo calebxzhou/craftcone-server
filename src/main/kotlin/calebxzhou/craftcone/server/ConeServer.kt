@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.server
 
-import calebxzhou.craftcone.net.ConeServerChannelHandler
+import calebxzhou.craftcone.net.ConeNetReceiver
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelOption
@@ -25,7 +25,7 @@ object ConeServer {
                 .group(workerGroup)
                 .channel(NioDatagramChannel::class.java)
                 .option(ChannelOption.SO_BROADCAST,true)
-                .handler(ConeServerChannelHandler)
+                .handler(ConeNetReceiver)
             // Bind and start to accept incoming connections.
             channelFuture = b.bind(port).sync()
             // Wait until the server socket is closed.

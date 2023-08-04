@@ -9,7 +9,7 @@ import io.netty.channel.socket.DatagramPacket
 /**
  * Created  on 2023-07-03,9:14.
  */
-object ConeServerChannelHandler : SimpleChannelInboundHandler<DatagramPacket>() {
+object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
         val clientAddr = msg.sender()

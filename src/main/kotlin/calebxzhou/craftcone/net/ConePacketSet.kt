@@ -12,6 +12,9 @@ import java.net.InetSocketAddress
  * Created  on 2023-07-14,8:55.
  */
 object ConePacketSet {
+    enum class PacketType {
+        READ,WRITE
+    }
     init {
         registerPacket(CheckPlayerExistC2SPacket::read)
         registerPacket(CheckPlayerExistS2CPacket::class.java)

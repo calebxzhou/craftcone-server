@@ -11,7 +11,7 @@ import java.net.InetSocketAddress
 /**
  * Created  on 2023-07-18,21:14.
  */
-object ConeNetManager {
+object ConeNetSender {
     @JvmStatic
     fun sendPacket(packet: BufferWritable, player: ConePlayer){
         sendPacket(packet, player.addr)

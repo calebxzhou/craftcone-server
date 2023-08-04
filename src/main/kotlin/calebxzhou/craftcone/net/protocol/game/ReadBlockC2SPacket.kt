@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.game
 
-import calebxzhou.craftcone.net.ConeNetManager
+import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -27,7 +27,7 @@ data class ReadBlockC2SPacket(
 
 
     override fun process(player: ConePlayer, playingRoom: ConeRoom) {
-        ConeNetManager.sendPacket(ReadBlockS2CPacket(dimId,bpos,playingRoom.readBlock(dimId,bpos)),player.addr)
+        ConeNetSender.sendPacket(ReadBlockS2CPacket(dimId,bpos,playingRoom.readBlock(dimId,bpos)),player.addr)
     }
 
 

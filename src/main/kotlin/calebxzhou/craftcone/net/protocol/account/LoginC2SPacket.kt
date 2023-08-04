@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.account
 
-import calebxzhou.craftcone.net.ConeNetManager
+import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -31,7 +31,7 @@ data class LoginC2SPacket(
             LoginS2CPacket(true,"")
         else
             LoginS2CPacket(false,"密码错误")
-        ConeNetManager.sendPacket(packet,clientAddress)
+        ConeNetSender.sendPacket(packet,clientAddress)
 
 
     }

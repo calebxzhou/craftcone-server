@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.room
 
-import calebxzhou.craftcone.net.ConeNetManager
+import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -36,7 +36,7 @@ data class PlayerCreateRoomC2SPacket(
             return
         //创建
         val room = ConeRoom.create(player, rName, isCreative, isFabric, blockStateAmount)
-        ConeNetManager.sendPacket(PlayerCreateRoomS2CPacket(true,room.rid.toString()),player)
+        ConeNetSender.sendPacket(PlayerCreateRoomS2CPacket(true,room.rid.toString()),player)
     }
 
 
