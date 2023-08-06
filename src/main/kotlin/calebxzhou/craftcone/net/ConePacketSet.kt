@@ -15,6 +15,18 @@ object ConePacketSet {
     enum class PacketType {
         READ,WRITE
     }
+
+
+
+
+
+
+    //包writer/reader种类 [id]
+    private val packetTypes = arrayListOf<PacketType>()
+    //c2s
+    private val packetIdReaders = linkedMapOf<Int,(FriendlyByteBuf) -> Packet>()
+    //s2c
+    private val packetWriterClassIds = linkedMapOf<Class<out BufferWritable>,Int>()
     init {
         registerPacket(CheckPlayerExistC2SPacket::read)
         registerPacket(CheckPlayerExistS2CPacket::class.java)
@@ -29,7 +41,7 @@ object ConePacketSet {
         registerPacket(PlayerMoveC2CPacket::class.java)
         registerPacket(ReadBlockC2SPacket::read)
         registerPacket(ReadBlockS2CPacket::class.java)
-        registerPacket(SaveBlockC2SPacket::read)
+        registerPacket(WriteBlockC2SPacket::read)
         registerPacket(SetBlockC2CPacket::read)
         registerPacket(SetBlockC2CPacket::class.java)
         //registerC2SPacket(SetBlockStateC2SPacket::read)
@@ -42,14 +54,6 @@ object ConePacketSet {
 
     }
 
-
-
-
-
-    //包writer/reader种类 [id]
-    private val packetTypes = arrayListOf<PacketType>()
-    private val packetIdReaders = linkedMapOf<Int,(FriendlyByteBuf) -> Packet>()
-    private val packetWriterClassIds = linkedMapOf<Class<out BufferWritable>,Int>()
     private fun registerPacket(reader: (FriendlyByteBuf) -> Packet){
         packetIdReaders += Pair (packetTypes.size,reader)
         packetTypes += PacketType.READ

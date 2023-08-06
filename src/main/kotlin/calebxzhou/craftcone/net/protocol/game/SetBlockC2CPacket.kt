@@ -1,10 +1,10 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
 
@@ -43,7 +43,7 @@ data class SetBlockC2CPacket(
 
     override fun process(player: ConePlayer, playingRoom: ConeRoom) {
         playingRoom.broadcastPacket(this)
-        playingRoom.saveBlock(dimId,bpos,stateId)
+       // playingRoom.saveBlock(dimId,bpos,stateId)
     }
 
 }

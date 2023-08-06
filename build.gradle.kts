@@ -20,6 +20,11 @@ dependencies {
 // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.4.8")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation ("org.jetbrains.exposed:exposed-core:0.42.0")
+    implementation ("org.jetbrains.exposed:exposed-dao:0.42.0")
+    implementation ("org.jetbrains.exposed:exposed-jdbc:0.42.0")
+// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
+    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
 
 }
 tasks.test {

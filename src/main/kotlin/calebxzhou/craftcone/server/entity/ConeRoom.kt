@@ -3,6 +3,7 @@ package calebxzhou.craftcone.server.entity
 import calebxzhou.craftcone.misc.UuidSerializer
 import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.game.WriteBlockC2SPacket
 import calebxzhou.craftcone.net.protocol.room.RoomInfoS2CPacket
 import calebxzhou.craftcone.server.DATA_DIR
 import calebxzhou.craftcone.server.INFO_FILE
@@ -59,16 +60,27 @@ data class ConeRoom(
         Files.createDirectories(statePath)
         Files.writeString(statePath.resolve("$id"), state)
     }
+    fun getChunkPath(dimId: Int,chunkPos: ChunkPos) : String{
+        return "dim/$dimId/${chunkPos}/"
+    }
+    private fun getStateIdPath(dimId: Int, bpos: BlockPos):String{
+        return getChunkPath(dimId,bpos.chunkPos)
+    }
 
-    fun saveBlock(dimId: Int, bpos: Long, stateId: Int) {
-        val path = profilePath.resolve("dim/$dimId/")
+    fun saveBlock(packet: WriteBlockC2SPacket) {
+        val path = profilePath.resolve(getChunkPath(packet.dimId,packet.bpos.chunkPos))
         Files.createDirectories(path)
-        Files.writeString(path.resolve(bpos.toString(36)), "$stateId")
+        Files.writeString(path.resolve(packet.bpos.toString()+".dat"), "${packet.stateId}")
     }
 
-    fun readBlock(dimId: Int, bpos: Long): Int {
-        return Files.readString(profilePath.resolve("dim/$dimId/${bpos.toString(36)}")).toInt()
-    }
+    /*fun readBlockStateId(dimId: Int, bpos: BlockPos): Int {
+        return try {
+            Files.readString(profilePath.resolve(getStateIdPath(dimId, bpos))).toInt()
+        } catch (e: NoSuchFileException) {
+            0
+        }
+    }*/
+
 
     fun broadcastPacket(packet: BufferWritable) {
         players.forEach { ConeNetSender.sendPacket(packet, it.value.addr) }
