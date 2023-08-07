@@ -5,8 +5,8 @@ import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.BufferReadable
-import calebxzhou.craftcone.server.entity.ConePlayer
-import calebxzhou.craftcone.server.entity.ConeRoom
+import calebxzhou.craftcone.server.entity.Player
+import calebxzhou.craftcone.server.entity.Room
 
 /**
  * Created  on 2023-07-13,10:21.
@@ -26,7 +26,7 @@ data class PlayerMoveC2CPacket(
         }
     }
 
-    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+    override fun process(player: Player, playingRoom: Room) {
         playingRoom.broadcastPacket(this)
     }
 

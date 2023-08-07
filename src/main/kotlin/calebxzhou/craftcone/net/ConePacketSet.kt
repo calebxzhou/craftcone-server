@@ -4,7 +4,7 @@ import calebxzhou.craftcone.net.protocol.*
 import calebxzhou.craftcone.net.protocol.account.*
 import calebxzhou.craftcone.net.protocol.game.*
 import calebxzhou.craftcone.net.protocol.room.*
-import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.logger
 import java.net.InetSocketAddress
 
@@ -91,14 +91,14 @@ object ConePacketSet {
                 packet.process(clientAddr)
             }
             is AfterLoginProcessable ->{
-                val player = ConePlayer.getByAddr(clientAddr) ?: let {
+                val player = Player.getByAddr(clientAddr) ?: let {
                     logger.error { "$clientAddr 想要处理包 ${packet.javaClass.simpleName} 但是此人未登录" }
                     return
                 }
                 packet.process(player)
             }
             is InRoomProcessable ->{
-                val player = ConePlayer.getByAddr(clientAddr) ?: let {
+                val player = Player.getByAddr(clientAddr) ?: let {
                     logger.error { "$clientAddr 想要处理包 ${packet.javaClass.simpleName} 但是此人未登录" }
                     return
                 }

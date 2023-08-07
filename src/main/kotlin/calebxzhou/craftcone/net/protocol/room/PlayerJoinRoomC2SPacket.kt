@@ -4,7 +4,7 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.BufferReadable
-import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.Player
 import java.util.*
 
 /**
@@ -22,7 +22,7 @@ data class PlayerJoinRoomC2SPacket(
     }
 
 
-    override fun process(player: ConePlayer) {
+    override fun process(player: Player) {
         player.joinRoom(rid)
     }
 

@@ -7,9 +7,8 @@ import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.BlockPos
 import calebxzhou.craftcone.server.entity.ChunkPos
-import calebxzhou.craftcone.server.entity.ConePlayer
-import calebxzhou.craftcone.server.entity.ConeRoom
-import calebxzhou.craftcone.server.logger
+import calebxzhou.craftcone.server.entity.Player
+import calebxzhou.craftcone.server.entity.Room
 
 /**
  * Created  on 2023-07-17,17:16.
@@ -25,15 +24,14 @@ data class ReadBlockC2SPacket(
         override fun read(buf: FriendlyByteBuf): ReadBlockC2SPacket {
             return ReadBlockC2SPacket(buf.readVarInt(),ChunkPos(buf.readLong()))
         }
-
     }
 
 
-    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+    override fun process(player: Player, playingRoom: Room) {
         val chunkPath =playingRoom. profilePath.resolve((playingRoom.getChunkPath(dimId,chunkPos)))
         chunkPath.toFile().walk().forEach {
             if(it.name.endsWith(".dat")){
-                logger.info { it.name }
+                //logger.info { it.name }
                 val bpos = BlockPos(it.name.replace(".dat",""))
                 val stateId = it.readText().toInt()
                 ConeNetSender.sendPacket(ReadBlockS2CPacket(dimId,bpos, stateId),player.addr)

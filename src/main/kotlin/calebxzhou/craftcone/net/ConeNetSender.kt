@@ -2,7 +2,7 @@ package calebxzhou.craftcone.net
 
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.server.ConeServer
-import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.logger
 import io.netty.buffer.Unpooled
 import io.netty.channel.socket.DatagramPacket
@@ -13,7 +13,7 @@ import java.net.InetSocketAddress
  */
 object ConeNetSender {
     @JvmStatic
-    fun sendPacket(packet: BufferWritable, player: ConePlayer){
+    fun sendPacket(packet: BufferWritable, player: Player){
         sendPacket(packet, player.addr)
     }
     @JvmStatic

@@ -5,8 +5,8 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.BufferReadable
-import calebxzhou.craftcone.server.entity.ConePlayer
-import calebxzhou.craftcone.server.entity.ConeRoom
+import calebxzhou.craftcone.server.entity.Player
+import calebxzhou.craftcone.server.entity.Room
 
 /**
  * Created  on 2023-07-06,8:48.
@@ -31,12 +31,12 @@ data class PlayerCreateRoomC2SPacket(
         }
     }
 
-    override fun process(player: ConePlayer) {
-        if(player.createdRoomAmount>5)
+    override fun process(player: Player) {
+        if(player.ownRoomAmount>5)
             return
         //创建
-        val room = ConeRoom.create(player, rName, isCreative, isFabric, blockStateAmount)
-        ConeNetSender.sendPacket(PlayerCreateRoomS2CPacket(true,room.rid.toString()),player)
+        val room = Room.create(player, rName, isCreative, isFabric, blockStateAmount)
+        ConeNetSender.sendPacket(PlayerCreateRoomS2CPacket(true,room.id.toString()),player)
     }
 
 

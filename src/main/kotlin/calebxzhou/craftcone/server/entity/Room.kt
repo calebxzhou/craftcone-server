@@ -5,32 +5,31 @@ import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.game.WriteBlockC2SPacket
 import calebxzhou.craftcone.net.protocol.room.RoomInfoS2CPacket
-import calebxzhou.craftcone.server.DATA_DIR
-import calebxzhou.craftcone.server.INFO_FILE
 import calebxzhou.craftcone.server.logger
+import calebxzhou.craftcone.server.table.RoomInfoRow
+import calebxzhou.craftcone.server.table.RoomInfoTable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.select
 import java.nio.file.Files
-import java.nio.file.Path
 import java.util.*
-import kotlin.io.path.Path
 import kotlin.random.Random
 
 /**
  * Created  on 2023-08-03,13:20.
  */
 @Serializable
-data class ConeRoom(
+data class Room(
     @Serializable(UuidSerializer::class)
     //房间ID
-    val rid: UUID,
+    val id: UUID,
     //房间名
-    val rName: String,
+    val name: String,
     @Serializable(UuidSerializer::class)
     //房主id
     val ownerId: UUID,
+    //mc版本
+    val mcVersion:String,
     //mod加载器？Fabric：Forge
     val isFabric: Boolean,
     //创造
@@ -43,12 +42,11 @@ data class ConeRoom(
     val createTime: Long,
 
     ) {
-    //房间档案path
-    val profilePath = getProfilePath(rid)
+
 
     @Transient
     //正在游玩 当前房间的 玩家list
-    val players = hashMapOf<UUID, ConePlayer>()
+    val players = hashMapOf<UUID, Player>()
 /*
     @Transient
     //临时id  to 玩家id （网络传输用）
@@ -73,6 +71,14 @@ data class ConeRoom(
         Files.writeString(path.resolve(packet.bpos.toString()+".dat"), "${packet.stateId}")
     }
 
+    //玩家加入
+    fun playerJoin(player: Player){
+        players += Pair(player.id,player)
+    }
+    //玩家离开
+    fun playerLeave(player: Player) {
+        players.remove(player.id)
+    }
     /*fun readBlockStateId(dimId: Int, bpos: BlockPos): Int {
         return try {
             Files.readString(profilePath.resolve(getStateIdPath(dimId, bpos))).toInt()
@@ -87,82 +93,88 @@ data class ConeRoom(
     }
 
     val infoPacket
-        get() = RoomInfoS2CPacket(rid, rName, isFabric, isCreative, blockStateAmount, seed)
+        get() = RoomInfoS2CPacket(id, name, isFabric, isCreative, blockStateAmount, seed)
 
     override fun toString(): String {
-        return "$rName($rid)"
+        return "$name($id)"
     }
     companion object {
-        //全部在线房间
-        private val onlineRooms = hashMapOf<UUID, ConeRoom>()
+        //全部运行中的房间
+        private val runningRooms = hashMapOf<UUID, Room>()
 
-        //获取房间档案path
-        fun getProfilePath(rid: UUID): Path {
-            return Path("$DATA_DIR/rooms/$rid")
+        //房间是否运行中
+        fun isRunning(rid: UUID): Boolean {
+            return runningRooms.containsKey(rid)
         }
-
-        //房间是否在线
-        fun isOnline(rid: UUID): Boolean {
-            return onlineRooms.containsKey(rid)
+        fun getRunning(rid: UUID) : Room?{
+            return runningRooms[rid]
         }
-
         //房间是否存在
         fun exists(rid: UUID): Boolean {
-            return Files.exists(getProfilePath(rid))
+            return !RoomInfoTable.select { RoomInfoTable.id eq rid }.empty()
         }
-
-        //玩家加入房间
-        fun joinRoom(player: ConePlayer, rid: UUID): ConeRoom? {
-            val room = onlineRooms[rid] ?: let {
-                logger.warn { "${player.pid} 请求加入不在线的房间$rid " }
-                return null
-            }
-            room.players += Pair(player.pid, player)
-            logger.info { "${player.pid} 加入了房间 $rid" }
-            return room
-        }
-
-
-        //载入房间
-        fun load(rid: UUID): ConeRoom {
-            val infoStr = Files.readString(getProfilePath(rid).resolve("info.dat"))
-            val room = Json.decodeFromString<ConeRoom>(infoStr)
-            onlineRooms += Pair(rid, room)
-            logger.info { "$rid ${room.rName} 房间已载入" }
-            return room
-        }
-
+        //创建房间
         fun create(
-            player: ConePlayer,
+            player: Player,
             name: String,
+            mcVersion: String,
             creative: Boolean,
             fabric: Boolean,
             blockStateAmount: Int
-        ): ConeRoom {
-            val coneRoom = ConeRoom(
+        ): Room {
+            return Room(
                 UUID.randomUUID(),
                 name,
-                player.pid,
+                player.id,
+                mcVersion,
                 fabric,
                 creative,
                 blockStateAmount,
                 Random.nextLong(),
                 System.currentTimeMillis()
-            )
-            coneRoom.write()
-            player.nowPlayingRoom = coneRoom
-            return coneRoom
+            ).also {
+                it.write()
+            }
+        }
+        //读取房间信息
+        fun readFromRow(row: RoomInfoRow): Room {
+            return Room(
+                row.id.value,
+                row.name,
+                row.ownerId,
+                row.mcVersion,
+                row.isFabric,
+                row.isCreative,
+                row.blockStateAmount,
+                row.seed,
+                row.createTime)
+        }
+        //载入房间
+        fun read(rid: UUID): Room? {
+            return readFromRow(RoomInfoRow.findById(rid)?:return null)
         }
 
 
     }
 
-    fun write() {
-        Files.createDirectories(profilePath)
-        Files.writeString(profilePath.resolve(INFO_FILE), Json.encodeToString(this))
+    //启动房间
+    fun start(){
+        runningRooms += Pair(id, this)
+        logger.info { "$this 房间已启动" }
     }
 
-    fun onPlayerLeave(conePlayer: ConePlayer) {
-        players.remove(conePlayer.pid)
+    fun write() {
+        RoomInfoRow.new(id) {
+            name = this@Room.name
+            ownerId = this@Room.ownerId
+            mcVersion = this@Room.mcVersion
+            isFabric = this@Room.isFabric
+            isCreative = this@Room.isCreative
+            blockStateAmount = this@Room.blockStateAmount
+            seed = this@Room.seed
+            createTime = this@Room.createTime
+        }
     }
+
+
 }

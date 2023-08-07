@@ -9,7 +9,6 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioDatagramChannel
 
 
-
 /**
  * Created  on 2023-07-18,21:02.
  */
@@ -20,6 +19,7 @@ object ConeServer {
     private val workerGroup: EventLoopGroup = NioEventLoopGroup()
     @JvmStatic
     fun start(port: Int){
+        logger.info { "在$port 端口启动服务器" }
         try {
             val b = Bootstrap()
                 .group(workerGroup)
