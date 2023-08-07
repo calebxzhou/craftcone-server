@@ -36,7 +36,7 @@ data class WriteBlockC2SPacket(
 
 
     override fun process(player: Player, playingRoom: Room) {
-        playingRoom.saveBlock(this)
+        playingRoom.writeBlock(this)
     }
 
 }

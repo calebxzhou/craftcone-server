@@ -73,9 +73,9 @@ data class Player(
             logger.info { "$this 未加入任何房间就请求离开" }
             return
         }
+        logger.info { "$this 已离开房间 $room" }
         nowPlayingRoom = null
         room.playerLeave(this)
-        logger.info { "$this 已离开房间 $nowPlayingRoom" }
 
     }
     //已创建房间数量
@@ -96,6 +96,7 @@ data class Player(
         //是否注册过
         fun exists(pid: UUID): Boolean {
             return !PlayerInfoTable.select { PlayerInfoTable.id eq pid }.empty()
+
         }
 
         //注册

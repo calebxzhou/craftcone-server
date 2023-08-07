@@ -6,6 +6,7 @@ import calebxzhou.craftcone.net.protocol.game.*
 import calebxzhou.craftcone.net.protocol.room.*
 import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.logger
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.InetSocketAddress
 
 /**
@@ -75,7 +76,9 @@ object ConePacketSet {
                     logger.error { "找不到ID$packetId 的包" }
                     return
                 }
-                processPacket(clientAddr,packet)
+                transaction {
+                    processPacket(clientAddr,packet)
+                }
             }
             else -> {
                 logger.error { "$clientAddr 客户端只能传入c2s包 ID$packetId 不是c2s包" }

@@ -3,8 +3,8 @@ package calebxzhou.craftcone.net.protocol.room
 import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
-import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.BufferReadable
+import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.entity.Room
 
@@ -15,6 +15,8 @@ import calebxzhou.craftcone.server.entity.Room
 data class PlayerCreateRoomC2SPacket(
     //房间名称
     val rName:String,
+    //mc版本
+    val mcVersion : String,
     //是否创造模式
     val isCreative: Boolean,
     //mod加载器？Fabric：Forge
@@ -27,6 +29,7 @@ data class PlayerCreateRoomC2SPacket(
         override fun read(buf: FriendlyByteBuf): PlayerCreateRoomC2SPacket {
             return PlayerCreateRoomC2SPacket(
                 buf.readUtf(),
+                buf.readUtf(),
                 buf.readBoolean(),buf.readBoolean(),buf.readVarInt())
         }
     }
@@ -35,7 +38,7 @@ data class PlayerCreateRoomC2SPacket(
         if(player.ownRoomAmount>5)
             return
         //创建
-        val room = Room.create(player, rName, isCreative, isFabric, blockStateAmount)
+        val room = Room.create(player, rName,mcVersion, isCreative, isFabric, blockStateAmount)
         ConeNetSender.sendPacket(PlayerCreateRoomS2CPacket(true,room.id.toString()),player)
     }
 

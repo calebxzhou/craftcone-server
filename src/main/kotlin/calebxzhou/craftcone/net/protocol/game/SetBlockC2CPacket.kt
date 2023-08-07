@@ -42,7 +42,7 @@ data class SetBlockC2CPacket(
 
 
     override fun process(player: Player, playingRoom: Room) {
-        playingRoom.broadcastPacket(this)
+        playingRoom.broadcastPacket(this,player)
        // playingRoom.saveBlock(dimId,bpos,stateId)
     }
 

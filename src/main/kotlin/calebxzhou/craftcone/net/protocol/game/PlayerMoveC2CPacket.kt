@@ -1,10 +1,10 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.entity.Room
 
@@ -27,7 +27,7 @@ data class PlayerMoveC2CPacket(
     }
 
     override fun process(player: Player, playingRoom: Room) {
-        playingRoom.broadcastPacket(this)
+        playingRoom.broadcastPacket(this,player)
     }
 
     override fun write(buf: FriendlyByteBuf) {

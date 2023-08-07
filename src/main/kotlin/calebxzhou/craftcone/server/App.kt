@@ -1,5 +1,6 @@
 package calebxzhou.craftcone.server
 
+import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.PlayerInfoTable
 import calebxzhou.craftcone.server.table.RoomInfoTable
 import mu.KotlinLogging
@@ -17,7 +18,7 @@ fun main(args: Array<String>) {
     transaction {
         addLogger(Slf4jSqlDebugLogger)
         logger.info { "初始化数据结构" }
-        SchemaUtils.create(PlayerInfoTable,RoomInfoTable)
+        SchemaUtils.create(PlayerInfoTable,RoomInfoTable,BlockStateTable)
     }
     ConeServer.start(19198)
 }
