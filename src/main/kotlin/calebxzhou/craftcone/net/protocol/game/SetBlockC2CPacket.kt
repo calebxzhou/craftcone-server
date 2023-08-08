@@ -5,6 +5,7 @@ import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.server.entity.BlockPos
 import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.entity.Room
 
@@ -43,7 +44,7 @@ data class SetBlockC2CPacket(
 
     override fun process(player: Player, playingRoom: Room) {
         playingRoom.broadcastPacket(this,player)
-       // playingRoom.saveBlock(dimId,bpos,stateId)
+        playingRoom.writeBlock(WriteBlockC2SPacket(dimId, BlockPos(bpos),stateId))
     }
 
 }

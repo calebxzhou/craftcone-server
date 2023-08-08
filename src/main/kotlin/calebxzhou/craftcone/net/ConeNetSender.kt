@@ -4,7 +4,7 @@ import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.server.ConeServer
 import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.logger
-import io.netty.buffer.Unpooled
+import io.netty.buffer.PooledByteBufAllocator
 import io.netty.channel.socket.DatagramPacket
 import java.net.InetSocketAddress
 
@@ -18,7 +18,7 @@ object ConeNetSender {
     }
     @JvmStatic
     fun sendPacket(packet: BufferWritable, clientAddress: InetSocketAddress) {
-        val data = FriendlyByteBuf(Unpooled.buffer())
+        val data = FriendlyByteBuf(PooledByteBufAllocator.DEFAULT.directBuffer())
         val packetId = ConePacketSet.getPacketId(packet.javaClass)?: let{
             logger.error("找不到$packet 对应的包ID")
             return

@@ -3,9 +3,11 @@ package calebxzhou.craftcone.server
 import calebxzhou.craftcone.net.ConeNetReceiver
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.nio.NioDatagramChannel
 
 
@@ -25,7 +27,13 @@ object ConeServer {
                 .group(workerGroup)
                 .channel(NioDatagramChannel::class.java)
                 .option(ChannelOption.SO_BROADCAST,true)
-                .handler(ConeNetReceiver)
+                .handler(object : ChannelInitializer<DatagramChannel>() {
+                    override fun initChannel(ch: DatagramChannel) {
+                        ch.pipeline()
+                            .addLast(ConeNetReceiver)
+                    }
+
+                })
             // Bind and start to accept incoming connections.
             channelFuture = b.bind(port).sync()
             // Wait until the server socket is closed.

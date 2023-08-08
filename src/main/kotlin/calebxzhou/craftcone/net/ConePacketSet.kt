@@ -46,7 +46,7 @@ object ConePacketSet {
         registerPacket(SetBlockC2CPacket::read)
         registerPacket(SetBlockC2CPacket::class.java)
         //registerC2SPacket(SetBlockStateC2SPacket::read)
-
+        registerPacket(SysChatMsgS2CPacket::class.java)
         registerPacket(PlayerCreateRoomC2SPacket::read)
         registerPacket(PlayerCreateRoomS2CPacket::class.java)
         registerPacket(PlayerJoinRoomC2SPacket::read)
@@ -87,8 +87,14 @@ object ConePacketSet {
         }
 
     }
+    fun createPacket(packetId: Int, data: FriendlyByteBuf): Packet? {
+        return packetIdReaders[packetId]?.invoke(data) ?: let {
+            logger.error { "找不到ID$packetId 的包" }
+            return null
+        }
+    }
     //服务端处理包
-    private fun processPacket(clientAddr: InetSocketAddress, packet: Packet) {
+    fun processPacket(clientAddr: InetSocketAddress, packet: Packet) {
         when(packet){
             is BeforeLoginProcessable ->{
                 packet.process(clientAddr)

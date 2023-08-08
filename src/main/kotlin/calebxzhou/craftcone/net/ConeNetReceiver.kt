@@ -17,7 +17,6 @@ object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
         val packetId = msg.content().readByte().toInt()
         val data = FriendlyByteBuf(msg.content())
         ConePacketSet.createAndProcess(clientAddr,packetId,data)
-
     }
 
 
