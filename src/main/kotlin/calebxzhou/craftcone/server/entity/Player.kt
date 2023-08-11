@@ -2,6 +2,7 @@ package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.misc.UuidSerializer
 import calebxzhou.craftcone.net.ConeNetSender
+import calebxzhou.craftcone.net.protocol.room.PlayerJoinRoomS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.PlayerInfoRow
 import calebxzhou.craftcone.server.table.PlayerInfoTable
@@ -63,6 +64,7 @@ data class Player(
         ConeNetSender.sendPacket(room.infoPacket, this)
         room.playerJoin(this)
         this.nowPlayingRoom = room
+        room.broadcastPacket(PlayerJoinRoomS2CPacket(id,name),this)
         logger.info { "$this 加入了房间 $room" }
         return true
     }

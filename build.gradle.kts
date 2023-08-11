@@ -25,6 +25,8 @@ dependencies {
     implementation ("org.jetbrains.exposed:exposed-jdbc:0.42.0")
 // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
+// https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation("org.postgresql:postgresql:42.6.0")
 
 }
 tasks.test {

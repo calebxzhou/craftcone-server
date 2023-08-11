@@ -18,7 +18,7 @@ object ConeServer {
 
     lateinit var channelFuture: ChannelFuture
 
-    private val workerGroup: EventLoopGroup = NioEventLoopGroup()
+    private val workerGroup: EventLoopGroup = NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2)
     @JvmStatic
     fun start(port: Int){
         logger.info { "在$port 端口启动服务器" }

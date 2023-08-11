@@ -1,9 +1,9 @@
 package calebxzhou.craftcone.net.protocol.room
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.server.entity.Player
 import calebxzhou.craftcone.server.entity.Room
 
@@ -21,6 +21,7 @@ class PlayerLeaveRoomC2SPacket : Packet, InRoomProcessable {
 
     override fun process(player: Player, playingRoom: Room) {
         player.leaveRoom()
+        playingRoom.broadcastPacket(PlayerLeaveRoomS2CPacket(player.id),player)
     }
 
 }
