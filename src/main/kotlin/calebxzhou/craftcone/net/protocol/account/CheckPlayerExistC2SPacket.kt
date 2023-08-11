@@ -14,11 +14,11 @@ import java.util.*
  */
 //用户是否存在（已注册）
 data class CheckPlayerExistC2SPacket(
-    val pid: UUID
+    val pid: Int
 ): Packet,BeforeLoginProcessable{
     companion object : BufferReadable<CheckPlayerExistC2SPacket>{
         override fun read(buf: FriendlyByteBuf): CheckPlayerExistC2SPacket {
-            return CheckPlayerExistC2SPacket(buf.readUUID())
+            return CheckPlayerExistC2SPacket(buf.readVarInt())
         }
 
     }

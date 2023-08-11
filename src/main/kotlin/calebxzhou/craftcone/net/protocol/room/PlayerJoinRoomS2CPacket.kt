@@ -9,11 +9,11 @@ import java.util.*
  * Created  on 2023-08-10,8:24.
  */
 data class PlayerJoinRoomS2CPacket(
-    val pid: UUID,
+    val pid: Int,
     val pName: String
 ) : Packet, BufferWritable{
     override fun write(buf: FriendlyByteBuf) {
-        buf.writeUUID(pid)
+        buf.writeVarInt(pid)
         buf.writeUtf(pName)
     }
 }

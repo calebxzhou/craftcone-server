@@ -5,6 +5,7 @@ import calebxzhou.craftcone.net.protocol.account.*
 import calebxzhou.craftcone.net.protocol.game.*
 import calebxzhou.craftcone.net.protocol.room.*
 import calebxzhou.craftcone.server.entity.Player
+import calebxzhou.craftcone.server.entity.Room
 import calebxzhou.craftcone.server.logger
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.InetSocketAddress
@@ -29,6 +30,7 @@ object ConePacketSet {
     //s2c
     private val packetWriterClassIds = linkedMapOf<Class<out BufferWritable>,Int>()
     init {
+        registerPacket(Room::class.java)
         registerPacket(CheckPlayerExistC2SPacket::read)
         registerPacket(CheckPlayerExistS2CPacket::class.java)
         registerPacket(LoginC2SPacket::read)
@@ -47,12 +49,16 @@ object ConePacketSet {
         registerPacket(SetBlockC2CPacket::class.java)
         //registerC2SPacket(SetBlockStateC2SPacket::read)
         registerPacket(SysChatMsgS2CPacket::class.java)
+
         registerPacket(PlayerCreateRoomC2SPacket::read)
         registerPacket(PlayerCreateRoomS2CPacket::class.java)
+        registerPacket(PlayerDeleteRoomC2SPacket::read)
+        registerPacket(PlayerDeleteRoomS2CPacket::class.java)
         registerPacket(PlayerJoinRoomC2SPacket::read)
+        registerPacket(PlayerJoinRoomS2CPacket::class.java)
         registerPacket(PlayerLeaveRoomC2SPacket::read)
         registerPacket(PlayerLeaveRoomS2CPacket::class.java)
-        registerPacket(RoomInfoS2CPacket::class.java)
+
 
     }
 

@@ -44,15 +44,15 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
         }
     }
 
-    fun writeUUID(uUID: UUID): FriendlyByteBuf {
+    /*fun writeUUID(uUID: UUID): FriendlyByteBuf {
         writeLong(uUID.mostSignificantBits)
         writeLong(uUID.leastSignificantBits)
         return this
     }
 
-    fun readUUID(): UUID  {
+    fun readVarInt(): UUID  {
         return UUID(readLong(), readLong())
-    }
+    }*/
     fun readUtf(): String  {
         return this.readUtf(32767)
     }

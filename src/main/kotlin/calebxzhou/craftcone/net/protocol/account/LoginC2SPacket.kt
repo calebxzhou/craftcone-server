@@ -15,14 +15,14 @@ import java.util.*
 //玩家登录请求
 data class LoginC2SPacket(
     //玩家UUID
-    val pid: UUID,
+    val pid: Int,
     //密码
     val pwd: String,
 ): Packet, BeforeLoginProcessable {
     companion object : BufferReadable<LoginC2SPacket>{
         override fun read(buf: FriendlyByteBuf): LoginC2SPacket {
             //for server
-            return LoginC2SPacket(buf.readUUID(),buf.readUtf())
+            return LoginC2SPacket(buf.readVarInt(),buf.readUtf())
         }
 
     }

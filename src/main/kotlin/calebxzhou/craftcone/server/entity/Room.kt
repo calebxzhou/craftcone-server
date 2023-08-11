@@ -1,20 +1,21 @@
 package calebxzhou.craftcone.server.entity
 
-import calebxzhou.craftcone.misc.UuidSerializer
 import calebxzhou.craftcone.net.ConeNetSender
+import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.game.WriteBlockC2SPacket
-import calebxzhou.craftcone.net.protocol.room.RoomInfoS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.RoomInfoRow
 import calebxzhou.craftcone.server.table.RoomInfoTable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.upsert
-import java.util.*
 import kotlin.random.Random
 
 /**
@@ -22,14 +23,12 @@ import kotlin.random.Random
  */
 @Serializable
 data class Room(
-    @Serializable(UuidSerializer::class)
     //房间ID
-    val id: UUID,
+    val id: Int,
     //房间名
     val name: String,
-    @Serializable(UuidSerializer::class)
     //房主id
-    val ownerId: UUID,
+    val ownerId: Int,
     //mc版本
     val mcVersion:String,
     //mod加载器？Fabric：Forge
@@ -42,17 +41,24 @@ data class Room(
     val seed: Long,
     //创建时间
     val createTime: Long,
+    ): Packet,BufferWritable {
 
-    ) {
-
+    override fun write(buf: FriendlyByteBuf) {
+        buf.writeVarInt(id)
+        buf.writeUtf(name)
+        buf.writeVarInt(ownerId)
+        buf.writeUtf(mcVersion)
+        buf.writeBoolean(isFabric)
+        buf.writeBoolean(isCreative)
+        buf.writeVarInt(blockStateAmount)
+        buf.writeLong(seed)
+        buf.writeLong(createTime)
+    }
 
     @Transient
     //正在游玩 当前房间的 玩家list
-    val players = hashMapOf<UUID, Player>()
+    val players = hashMapOf<Int, Player>()
 
-    //房间信息数据包
-    val infoPacket
-        get() = RoomInfoS2CPacket(id, name, isFabric, isCreative, blockStateAmount, seed)
     //启动房间
     fun start(){
         runningRooms += Pair(id, this)
@@ -61,7 +67,7 @@ data class Room(
 
     //新增房间
     fun insert() {
-        RoomInfoRow.new(id) {
+        RoomInfoRow.new {
             name = this@Room.name
             ownerId = this@Room.ownerId
             mcVersion = this@Room.mcVersion
@@ -91,7 +97,7 @@ data class Room(
     //读方块
     fun readBlock(dimId:Int,chunkPos: ChunkPos, doForEachBlockStateId : (BlockPos,Int)->Unit){
         BlockStateTable.select {
-            (BlockStateTable.chunkPos eq chunkPos.asLong)
+            (BlockStateTable.chunkPos eq chunkPos.asInt)
                 .and (BlockStateTable.roomId eq id)
                 .and(BlockStateTable.dimId eq dimId)
         }.forEach {
@@ -108,7 +114,7 @@ data class Room(
             it[roomId]= id
             it[dimId] = packet.dimId
             it[blockPos] = packet.bpos.asLong
-            it[chunkPos] = packet.cpos.asLong
+            it[chunkPos] = packet.cpos.asInt
             it[blockStateId] = packet.stateId
         }
     }
@@ -122,6 +128,7 @@ data class Room(
             }
         }
     }
+
 
 
     /*fun readBlockStateId(dimId: Int, bpos: BlockPos): Int {
@@ -138,16 +145,16 @@ data class Room(
     companion object {
 
         //全部运行中的房间
-        private val runningRooms = hashMapOf<UUID, Room>()
+        private val runningRooms = hashMapOf<Int, Room>()
         //房间是否运行中
-        fun isRunning(rid: UUID): Boolean {
+        fun isRunning(rid: Int): Boolean {
             return runningRooms.containsKey(rid)
         }
-        fun getRunning(rid: UUID) : Room?{
+        fun getRunning(rid: Int) : Room?{
             return runningRooms[rid]
         }
         //房间是否存在
-        fun exists(rid: UUID): Boolean {
+        fun exists(rid: Int): Boolean {
             return !RoomInfoTable.select { RoomInfoTable.id eq rid }.empty()
         }
         //创建房间
@@ -160,7 +167,7 @@ data class Room(
             blockStateAmount: Int
         ): Room {
             return Room(
-                UUID.randomUUID(),
+                0,
                 name,
                 player.id,
                 mcVersion,
@@ -174,7 +181,7 @@ data class Room(
             }
         }
         //读取房间信息
-        fun readFromRow(row: RoomInfoRow): Room {
+        private fun readFromRow(row: RoomInfoRow): Room {
             return Room(
                 row.id.value,
                 row.name,
@@ -188,9 +195,22 @@ data class Room(
         }
 
 
-        //载入房间
-        fun read(rid: UUID): Room? {
+        //读取房间数据
+        fun read(rid: Int): Room? {
             return readFromRow(RoomInfoRow.findById(rid)?:return null)
+        }
+        //查房主ID
+        fun getOwnerId(rid: Int) : Int{
+            val room = RoomInfoRow.findById(rid)?:return -1
+            return room.ownerId
+        }
+        //删除房间
+        fun delete(rid :Int) : Boolean{
+            if(!exists(rid))
+                return false
+            RoomInfoTable.deleteWhere { RoomInfoTable.id eq rid }
+            BlockStateTable.deleteWhere { BlockStateTable.roomId eq rid }
+            return true
         }
     }
 

@@ -1,6 +1,5 @@
 package calebxzhou.craftcone.server.entity
 
-import calebxzhou.craftcone.misc.UuidSerializer
 import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.protocol.room.PlayerJoinRoomS2CPacket
 import calebxzhou.craftcone.server.logger
@@ -13,16 +12,14 @@ import kotlinx.serialization.Transient
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import java.net.InetSocketAddress
-import java.util.*
 
 /**
  * Created  on 2023-07-18,21:02.
  */
 @Serializable
 data class Player(
-    @Serializable(UuidSerializer::class)
     //玩家id
-    val id: UUID,
+    val id: Int,
     //玩家名
     val name: String,
     //密码
@@ -47,7 +44,7 @@ data class Player(
     }
 
     //加入房间
-    fun joinRoom(rid: UUID): Boolean {
+    fun joinRoom(rid: Int): Boolean {
         val room = if(!Room.isRunning(rid)){
             Room.read(rid)?.also {
                 it.start()
@@ -61,7 +58,7 @@ data class Player(
                 return false
             }
         }
-        ConeNetSender.sendPacket(room.infoPacket, this)
+        ConeNetSender.sendPacket(room, this)
         room.playerJoin(this)
         this.nowPlayingRoom = room
         room.broadcastPacket(PlayerJoinRoomS2CPacket(id,name),this)
@@ -90,19 +87,19 @@ data class Player(
 
     companion object {
         //全部在线玩家
-        private val onlinePlayers = hashMapOf<UUID, Player>()
+        private val onlinePlayers = hashMapOf<Int, Player>()
 
         //玩家ip to 玩家
         private val addrToPlayer = hashMapOf<InetSocketAddress, Player>()
 
         //是否注册过
-        fun exists(pid: UUID): Boolean {
+        fun exists(pid: Int): Boolean {
             return !PlayerInfoTable.select { PlayerInfoTable.id eq pid }.empty()
 
         }
 
         //注册
-        fun create(pid: UUID, pwd: String, pName: String): Boolean {
+        fun create(pid: Int, pwd: String, pName: String): Boolean {
             if (exists(pid)) {
                 logger.info { "$pName 已注册过了，不允许再注册！" }
                 return false;
@@ -119,12 +116,12 @@ data class Player(
         }
 
         //读取玩家信息
-        fun read(pid: UUID): Player? {
+        fun read(pid: Int): Player? {
             return readFromRow(PlayerInfoRow.findById(pid)?:return null)
         }
 
         //登录
-        fun login(pid: UUID, pwd: String, addr: InetSocketAddress): Boolean {
+        fun login(pid: Int, pwd: String, addr: InetSocketAddress): Boolean {
             val find = PlayerInfoRow.find {
                 (PlayerInfoTable.id eq pid) and (PlayerInfoTable.pwd eq pwd)
             }

@@ -6,10 +6,10 @@ import org.jetbrains.exposed.sql.Table
  * Created  on 2023-08-07,7:17.
  */
 object BlockStateTable: Table("block_state") {
-    val roomId = uuid("room_id").references(RoomInfoTable.id)
+    val roomId = integer("room_id").references(RoomInfoTable.id)
     val dimId = integer("dim_id")
     val blockPos = long("block_pos")
-    val chunkPos = long("chunk_pos")
+    val chunkPos = integer("chunk_pos")
     val blockStateId = integer("block_state_id")
 
     override val primaryKey = PrimaryKey(roomId,dimId, blockPos, name = "PK_RoomDimBpos")
