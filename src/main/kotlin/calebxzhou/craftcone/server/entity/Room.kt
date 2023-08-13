@@ -66,8 +66,8 @@ data class Room(
     }
 
     //新增房间
-    fun insert() {
-        RoomInfoRow.new {
+    fun insert(): RoomInfoRow {
+        return RoomInfoRow.new {
             name = this@Room.name
             ownerId = this@Room.ownerId
             mcVersion = this@Room.mcVersion
@@ -165,8 +165,8 @@ data class Room(
             creative: Boolean,
             fabric: Boolean,
             blockStateAmount: Int
-        ): Room {
-            return Room(
+        ): Int {
+            Room(
                 0,
                 name,
                 player.id,
@@ -177,7 +177,7 @@ data class Room(
                 Random.nextLong(),
                 System.currentTimeMillis()
             ).also {
-                it.insert()
+                return it.insert().id.value
             }
         }
         //读取房间信息

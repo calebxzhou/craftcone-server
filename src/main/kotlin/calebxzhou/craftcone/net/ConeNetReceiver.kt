@@ -1,5 +1,6 @@
 package calebxzhou.craftcone.net
 
+import calebxzhou.craftcone.server.logger
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
@@ -12,11 +13,15 @@ import io.netty.channel.socket.DatagramPacket
 object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
-        val clientAddr = msg.sender()
-        //第一个byte
-        val packetId = msg.content().readByte().toInt()
-        val data = FriendlyByteBuf(msg.content())
-        ConePacketSet.createAndProcess(clientAddr,packetId,data)
+        try {
+            val clientAddr = msg.sender()
+            //第一个byte
+            val packetId = msg.content().readByte().toInt()
+            val data = FriendlyByteBuf(msg.content())
+            ConePacketSet.createAndProcess(clientAddr,packetId,data)
+        } catch (e: Exception) {
+            logger.error { "读取数据出现错误 $e" }
+        }
     }
 
 

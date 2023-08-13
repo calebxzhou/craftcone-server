@@ -1,6 +1,7 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.net.ConeNetSender
+import calebxzhou.craftcone.net.protocol.account.RegisterS2CPacket
 import calebxzhou.craftcone.net.protocol.room.PlayerJoinedRoomS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.PlayerInfoRow
@@ -98,16 +99,20 @@ data class Player(
             return !PlayerInfoTable.select { PlayerInfoTable.id eq pid }.empty()
 
         }
+        fun exists(name: String): Boolean {
+            return !PlayerInfoTable.select { PlayerInfoTable.name eq name }.empty()
+
+        }
 
         //注册
-        fun create(pwd: String, pName: String): Int {
-            /*if (exists(pid)) {
+        fun register(pwd: String, pName: String, clientAddress: InetSocketAddress) {
+            if (exists(pName)) {
                 logger.info { "$pName 已注册过了，不允许再注册！" }
-                return false;
-            }*/
+                return ;
+            }
             val player = Player(0, pName, pwd, System.currentTimeMillis())
             logger.info { "$player 已注册" }
-            return player.insert()
+            ConeNetSender.sendPacket(RegisterS2CPacket(true, player.insert(). toString()),clientAddress)
         }
 
         //读取玩家信息

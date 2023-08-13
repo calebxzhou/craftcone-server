@@ -38,8 +38,8 @@ data class PlayerCreateRoomC2SPacket(
         if(player.ownRoomAmount>5)
             return
         //创建
-        val room = Room.create(player, rName,mcVersion, isCreative, isFabric, blockStateAmount)
-        ConeNetSender.sendPacket(PlayerCreateRoomS2CPacket(true,room.id.toString()),player)
+        val rid = Room.create(player, rName,mcVersion, isCreative, isFabric, blockStateAmount)
+        ConeNetSender.sendPacket(PlayerCreateRoomS2CPacket(true,rid.toString()),player)
     }
 
 

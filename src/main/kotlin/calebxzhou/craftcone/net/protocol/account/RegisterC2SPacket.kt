@@ -1,6 +1,5 @@
 package calebxzhou.craftcone.net.protocol.account
 
-import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
@@ -23,7 +22,8 @@ data class RegisterC2SPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        ConeNetSender.sendPacket(RegisterS2CPacket(true, Player.create(pwd,pName).toString()),clientAddress)
+        Player.register(pwd,pName,clientAddress)
+
 
     }
 
