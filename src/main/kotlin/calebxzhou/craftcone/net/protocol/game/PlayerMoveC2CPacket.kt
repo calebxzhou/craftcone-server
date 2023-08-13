@@ -12,8 +12,7 @@ import calebxzhou.craftcone.server.entity.Room
  * Created  on 2023-07-13,10:21.
  */
 data class PlayerMoveC2CPacket(
-    //临时id，仅在单个房间中有用
-    val tpid:Int,
+    val pid:Int,
     val x:Float,
     val y:Float,
     val z:Float,
@@ -31,7 +30,7 @@ data class PlayerMoveC2CPacket(
     }
 
     override fun write(buf: FriendlyByteBuf) {
-        buf.writeVarInt(tpid)
+        buf.writeVarInt(pid)
         buf.writeFloat(x)
         buf.writeFloat(y)
         buf.writeFloat(z)

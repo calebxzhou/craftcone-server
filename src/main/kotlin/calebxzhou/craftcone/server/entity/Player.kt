@@ -1,7 +1,7 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.net.ConeNetSender
-import calebxzhou.craftcone.net.protocol.room.PlayerJoinRoomS2CPacket
+import calebxzhou.craftcone.net.protocol.room.PlayerJoinedRoomS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.PlayerInfoRow
 import calebxzhou.craftcone.server.table.PlayerInfoTable
@@ -34,13 +34,14 @@ data class Player(
     //正在游玩的房间
     var nowPlayingRoom: Room? = null
 
-    //保存
-    fun write() {
-        PlayerInfoRow.new(id) {
+    //保存，返回ID
+    fun insert(): Int {
+        return PlayerInfoRow.new {
             name = this@Player.name
             pwd = this@Player.pwd
             createTime = this@Player.createTime
-        }
+        }.id.value
+
     }
 
     //加入房间
@@ -61,7 +62,7 @@ data class Player(
         ConeNetSender.sendPacket(room, this)
         room.playerJoin(this)
         this.nowPlayingRoom = room
-        room.broadcastPacket(PlayerJoinRoomS2CPacket(id,name),this)
+        room.broadcastPacket(PlayerJoinedRoomS2CPacket(id,name),this)
         logger.info { "$this 加入了房间 $room" }
         return true
     }
@@ -99,15 +100,14 @@ data class Player(
         }
 
         //注册
-        fun create(pid: Int, pwd: String, pName: String): Boolean {
-            if (exists(pid)) {
+        fun create(pwd: String, pName: String): Int {
+            /*if (exists(pid)) {
                 logger.info { "$pName 已注册过了，不允许再注册！" }
                 return false;
-            }
-            val player = Player(pid, pName, pwd, System.currentTimeMillis())
-            player.write()
+            }*/
+            val player = Player(0, pName, pwd, System.currentTimeMillis())
             logger.info { "$player 已注册" }
-            return true
+            return player.insert()
         }
 
         //读取玩家信息

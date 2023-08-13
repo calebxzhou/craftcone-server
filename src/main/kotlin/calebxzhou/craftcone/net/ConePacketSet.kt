@@ -50,14 +50,15 @@ object ConePacketSet {
         //registerC2SPacket(SetBlockStateC2SPacket::read)
         registerPacket(SysChatMsgS2CPacket::class.java)
 
+        registerPacket(GetRoomInfoC2SPacket::read)
         registerPacket(PlayerCreateRoomC2SPacket::read)
         registerPacket(PlayerCreateRoomS2CPacket::class.java)
         registerPacket(PlayerDeleteRoomC2SPacket::read)
         registerPacket(PlayerDeleteRoomS2CPacket::class.java)
         registerPacket(PlayerJoinRoomC2SPacket::read)
-        registerPacket(PlayerJoinRoomS2CPacket::class.java)
+        registerPacket(PlayerJoinedRoomS2CPacket::class.java)
         registerPacket(PlayerLeaveRoomC2SPacket::read)
-        registerPacket(PlayerLeaveRoomS2CPacket::class.java)
+        registerPacket(PlayerLeftRoomS2CPacket::class.java)
 
 
     }

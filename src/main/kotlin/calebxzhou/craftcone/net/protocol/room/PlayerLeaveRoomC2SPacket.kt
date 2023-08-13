@@ -21,7 +21,7 @@ class PlayerLeaveRoomC2SPacket : Packet, InRoomProcessable {
 
     override fun process(player: Player, playingRoom: Room) {
         player.leaveRoom()
-        playingRoom.broadcastPacket(PlayerLeaveRoomS2CPacket(player.id),player)
+        playingRoom.broadcastPacket(PlayerLeftRoomS2CPacket(player.id),player)
     }
 
 }
