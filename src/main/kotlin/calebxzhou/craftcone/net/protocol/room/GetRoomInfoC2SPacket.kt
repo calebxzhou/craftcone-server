@@ -5,8 +5,8 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.server.entity.Player
-import calebxzhou.craftcone.server.entity.Room
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
 
 /**
@@ -21,8 +21,8 @@ data class GetRoomInfoC2SPacket(
         }
 
     }
-    override fun process(player: Player) {
-        val room = Room.read(rid) ?:let{
+    override fun process(player: ConePlayer) {
+        val room = ConeRoom.read(rid) ?:let{
             logger.info { "找不到房间$rid" }
             return
         }

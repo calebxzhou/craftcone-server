@@ -1,7 +1,8 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.net.ConeNetSender
-import calebxzhou.craftcone.net.protocol.account.RegisterS2CPacket
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.net.protocol.room.PlayerJoinedRoomS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.PlayerInfoRow
@@ -18,7 +19,7 @@ import java.net.InetSocketAddress
  * Created  on 2023-07-18,21:02.
  */
 @Serializable
-data class Player(
+data class ConePlayer(
     //玩家id
     val id: Int,
     //玩家名
@@ -33,29 +34,29 @@ data class Player(
 ) {
 
     //正在游玩的房间
-    var nowPlayingRoom: Room? = null
+    var nowPlayingRoom: ConeRoom? = null
 
     //保存，返回ID
     fun insert(): Int {
         return PlayerInfoRow.new {
-            name = this@Player.name
-            pwd = this@Player.pwd
-            createTime = this@Player.createTime
+            name = this@ConePlayer.name
+            pwd = this@ConePlayer.pwd
+            createTime = this@ConePlayer.createTime
         }.id.value
 
     }
 
     //加入房间
     fun joinRoom(rid: Int): Boolean {
-        val room = if(!Room.isRunning(rid)){
-            Room.read(rid)?.also {
+        val room = if(!ConeRoom.isRunning(rid)){
+            ConeRoom.read(rid)?.also {
                 it.start()
             }?:let {
                 logger.warn { "$this 请求加入不存在的房间 $rid" }
                 return false
             }
         }else{
-            Room.getRunning(rid)?:let {
+            ConeRoom.getRunning(rid)?:let {
                 logger.warn { "$this 请求加入未运行的房间 $rid" }
                 return false
             }
@@ -86,13 +87,17 @@ data class Player(
         return "$name($id)"
     }
 
+    fun sendPacket(packet: BufferWritable) {
+        ConeNetSender.sendPacket(packet,this)
+    }
+
 
     companion object {
         //全部在线玩家
-        private val onlinePlayers = hashMapOf<Int, Player>()
+        private val onlinePlayers = hashMapOf<Int, ConePlayer>()
 
         //玩家ip to 玩家
-        private val addrToPlayer = hashMapOf<InetSocketAddress, Player>()
+        private val addrToPlayer = hashMapOf<InetSocketAddress, ConePlayer>()
 
         //是否注册过
         fun exists(pid: Int): Boolean {
@@ -110,18 +115,18 @@ data class Player(
                 logger.info { "$pName 已注册过了，不允许再注册！" }
                 return ;
             }
-            val player = Player(0, pName, pwd, System.currentTimeMillis())
+            val player = ConePlayer(0, pName, pwd, System.currentTimeMillis())
             logger.info { "$player 已注册" }
-            ConeNetSender.sendPacket(RegisterS2CPacket(true, player.insert(). toString()),clientAddress)
+            ConeNetSender.sendPacket(OkDataS2CPacket(),clientAddress)
         }
 
         //读取玩家信息
-        fun readFromRow(row: PlayerInfoRow): Player {
-            return Player(row.id.value, row.name, row.pwd, row.createTime)
+        fun readFromRow(row: PlayerInfoRow): ConePlayer {
+            return ConePlayer(row.id.value, row.name, row.pwd, row.createTime)
         }
 
         //读取玩家信息
-        fun read(pid: Int): Player? {
+        fun read(pid: Int): ConePlayer? {
             return readFromRow(PlayerInfoRow.findById(pid)?:return null)
         }
 
@@ -147,7 +152,7 @@ data class Player(
 
 
         //根据ip地址获取在线玩家
-        fun getByAddr(addr: InetSocketAddress): Player? {
+        fun getByAddr(addr: InetSocketAddress): ConePlayer? {
             return addrToPlayer[addr]
         }
 

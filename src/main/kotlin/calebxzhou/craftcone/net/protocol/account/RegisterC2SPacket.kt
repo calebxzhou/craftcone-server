@@ -4,7 +4,7 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.server.entity.Player
+import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
 
 /**
@@ -22,9 +22,7 @@ data class RegisterC2SPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        Player.register(pwd,pName,clientAddress)
-
-
+        ConePlayer.register(pwd,pName,clientAddress)
     }
 
 }

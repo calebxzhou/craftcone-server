@@ -27,7 +27,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
 // https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation("org.postgresql:postgresql:42.6.0")
-
+    implementation("net.benwoodworth.knbt:knbt:0.11.3")
 }
 tasks.test {
     useJUnitPlatform()

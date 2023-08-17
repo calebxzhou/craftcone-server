@@ -5,8 +5,8 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.server.entity.Player
-import calebxzhou.craftcone.server.entity.Room
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 
 /**
  * Created  on 2023-08-11,20:39.
@@ -20,12 +20,12 @@ data class PlayerDeleteRoomC2SPacket(
         }
 
     }
-    override fun process(player: Player) {
-        val ownerId = Room.getOwnerId(rid)
+    override fun process(player: ConePlayer) {
+        val ownerId = ConeRoom.getOwnerId(rid)
         if(ownerId < 0 || ownerId != player.id){
             ConeNetSender.sendPacket(PlayerDeleteRoomS2CPacket(false,"没有房间$rid"),player)
         }
-        if(Room.delete(rid)){
+        if(ConeRoom.delete(rid)){
             ConeNetSender.sendPacket(PlayerDeleteRoomS2CPacket(true,""),player)
         }
 

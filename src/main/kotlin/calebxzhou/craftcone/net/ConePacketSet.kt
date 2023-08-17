@@ -4,8 +4,8 @@ import calebxzhou.craftcone.net.protocol.*
 import calebxzhou.craftcone.net.protocol.account.*
 import calebxzhou.craftcone.net.protocol.game.*
 import calebxzhou.craftcone.net.protocol.room.*
-import calebxzhou.craftcone.server.entity.Player
-import calebxzhou.craftcone.server.entity.Room
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.InetSocketAddress
@@ -30,7 +30,7 @@ object ConePacketSet {
     //s2c
     private val packetWriterClassIds = linkedMapOf<Class<out BufferWritable>,Int>()
     init {
-        registerPacket(Room::class.java)
+        registerPacket(ConeRoom::class.java)
         registerPacket(CheckPlayerExistC2SPacket::read)
         registerPacket(CheckPlayerExistS2CPacket::class.java)
         registerPacket(LoginC2SPacket::read)
@@ -38,12 +38,12 @@ object ConePacketSet {
         registerPacket(RegisterC2SPacket::read)
         registerPacket(RegisterS2CPacket::class.java)
 
-        registerPacket(ChatC2CPacket::read)
-        registerPacket(ChatC2CPacket::class.java)
+        registerPacket(SendChatMsgC2SPacket::read)
+        registerPacket(SendChatMsgC2SPacket::class.java)
         registerPacket(PlayerMoveC2CPacket::read)
         registerPacket(PlayerMoveC2CPacket::class.java)
-        registerPacket(ReadBlockC2SPacket::read)
-        registerPacket(ReadBlockS2CPacket::class.java)
+        registerPacket(GetChunkC2SPacket::read)
+        registerPacket(BlockDataC2CPacket::class.java)
         registerPacket(WriteBlockC2SPacket::read)
         registerPacket(SetBlockC2CPacket::read)
         registerPacket(SetBlockC2CPacket::class.java)
@@ -108,14 +108,14 @@ object ConePacketSet {
                 packet.process(clientAddr)
             }
             is AfterLoginProcessable ->{
-                val player = Player.getByAddr(clientAddr) ?: let {
+                val player = ConePlayer.getByAddr(clientAddr) ?: let {
                     logger.error { "$clientAddr 想要处理包 ${packet.javaClass.simpleName} 但是此人未登录" }
                     return
                 }
                 packet.process(player)
             }
             is InRoomProcessable ->{
-                val player = Player.getByAddr(clientAddr) ?: let {
+                val player = ConePlayer.getByAddr(clientAddr) ?: let {
                     logger.error { "$clientAddr 想要处理包 ${packet.javaClass.simpleName} 但是此人未登录" }
                     return
                 }

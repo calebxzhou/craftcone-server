@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol
 
-import calebxzhou.craftcone.server.entity.Player
+import calebxzhou.craftcone.server.entity.ConePlayer
 
 /**
  * Created  on 2023-07-21,22:21.
@@ -8,5 +8,5 @@ import calebxzhou.craftcone.server.entity.Player
 //玩家登录后 数据包
 interface AfterLoginProcessable {
     //处理数据
-    fun process(player: Player)
+    fun process(player: ConePlayer)
 }

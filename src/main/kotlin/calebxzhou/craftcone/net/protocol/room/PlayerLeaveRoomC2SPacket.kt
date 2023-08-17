@@ -4,8 +4,8 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.server.entity.Player
-import calebxzhou.craftcone.server.entity.Room
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 
 /**
  * Created  on 2023-07-06,8:48.
@@ -19,7 +19,7 @@ class PlayerLeaveRoomC2SPacket : Packet, InRoomProcessable {
         }
     }
 
-    override fun process(player: Player, playingRoom: Room) {
+    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
         player.leaveRoom()
         playingRoom.broadcastPacket(PlayerLeftRoomS2CPacket(player.id),player)
     }

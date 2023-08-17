@@ -10,7 +10,7 @@ data class BlockPos(val x:Int,val y:Int,val z:Int){
         get() = ((x and 0x3FFFFFF).toLong() shl 38) or ((z and 0x3FFFFFF).toLong() shl 12) or (y.toLong() and 0xFFF)
 
     val chunkPos
-        get() = ChunkPos((x shr 4),(z shr 4))
+        get() = ConeChunkPos((x shr 4),(z shr 4))
     val sectionPos
         get() = SectionPos(x shr 4,y shr 4,z shr 4)
     override fun toString(): String {

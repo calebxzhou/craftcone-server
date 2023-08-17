@@ -2,12 +2,11 @@ package calebxzhou.craftcone.net.protocol.account
 
 import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
-import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
-import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.net.protocol.BufferReadable
-import calebxzhou.craftcone.server.entity.Player
+import calebxzhou.craftcone.net.protocol.*
+import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
+import calebxzhou.craftcone.net.protocol.general.SysMsgS2CPacket
+import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
-import java.util.*
 
 /**
  * Created  on 2023-07-13,17:27.
@@ -27,12 +26,10 @@ data class LoginC2SPacket(
 
     }
     override fun process(clientAddress: InetSocketAddress) {
-        val packet = if(Player.login(pid,pwd,clientAddress))
-            LoginS2CPacket(true,"")
+        if(ConePlayer.login(pid,pwd,clientAddress))
+            ConeNetSender.sendPacket(OkDataS2CPacket(null),clientAddress)
         else
-            LoginS2CPacket(false,"密码错误")
-        ConeNetSender.sendPacket(packet,clientAddress)
-
+            ConeNetSender.sendPacket(SysMsgS2CPacket(MsgType.Toast,MsgLevel.Err,"用户UID和密码不匹配"),clientAddress)
 
     }
 

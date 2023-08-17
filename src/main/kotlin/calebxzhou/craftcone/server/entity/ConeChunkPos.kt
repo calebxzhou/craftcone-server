@@ -3,7 +3,7 @@ package calebxzhou.craftcone.server.entity
 /**
  * Created  on 2023-08-06,14:09.
  */
-data class ChunkPos(val x:Int,val z:Int){
+data class ConeChunkPos(val x:Int, val z:Int){
 
     //constructor(string: String):this(string.split(",")[0].toInt(),string.split(",")[1].toInt())
     constructor(l: Long) : this(

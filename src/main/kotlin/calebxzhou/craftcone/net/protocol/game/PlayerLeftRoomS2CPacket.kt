@@ -2,16 +2,17 @@ package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.Packet
 
 /**
- * Created  on 2023-08-08,23:03.
+ * Created  on 2023-08-11,11:50.
  */
-//聊天消息
-data class SysChatMsgS2CPacket(
-    val msg :String
-):BufferWritable{
+//有玩家离开了房间
+data class PlayerLeftRoomS2CPacket(
+    val pid: Int
+): Packet,BufferWritable {
     override fun write(buf: FriendlyByteBuf) {
-        buf.writeUtf(msg)
+        buf.writeVarInt(pid)
     }
 
 }

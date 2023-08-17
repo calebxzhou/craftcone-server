@@ -4,7 +4,6 @@ import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.net.protocol.game.WriteBlockC2SPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.RoomInfoRow
@@ -22,7 +21,7 @@ import kotlin.random.Random
  * Created  on 2023-08-03,13:20.
  */
 @Serializable
-data class Room(
+data class ConeRoom(
     //房间ID
     val id: Int,
     //房间名
@@ -57,7 +56,7 @@ data class Room(
 
     @Transient
     //正在游玩 当前房间的 玩家list
-    val players = hashMapOf<Int, Player>()
+    val players = hashMapOf<Int, ConePlayer>()
 
     //启动房间
     fun start(){
@@ -68,23 +67,23 @@ data class Room(
     //新增房间
     fun insert(): RoomInfoRow {
         return RoomInfoRow.new {
-            name = this@Room.name
-            ownerId = this@Room.ownerId
-            mcVersion = this@Room.mcVersion
-            isFabric = this@Room.isFabric
-            isCreative = this@Room.isCreative
-            blockStateAmount = this@Room.blockStateAmount
-            seed = this@Room.seed
-            createTime = this@Room.createTime
+            name = this@ConeRoom.name
+            ownerId = this@ConeRoom.ownerId
+            mcVersion = this@ConeRoom.mcVersion
+            isFabric = this@ConeRoom.isFabric
+            isCreative = this@ConeRoom.isCreative
+            blockStateAmount = this@ConeRoom.blockStateAmount
+            seed = this@ConeRoom.seed
+            createTime = this@ConeRoom.createTime
         }
     }
 
     //玩家加入
-    fun playerJoin(player: Player){
+    fun playerJoin(player: ConePlayer){
         players += Pair(player.id,player)
     }
     //玩家离开
-    fun playerLeave(player: Player) {
+    fun playerLeave(player: ConePlayer) {
         players.remove(player.id)
     }
 
@@ -95,7 +94,7 @@ data class Room(
         Files.writeString(statePath.resolve("$id"), state)
     }*/
     //读方块
-    fun readBlock(dimId:Int,chunkPos: ChunkPos, doForEachBlockStateId : (BlockPos,Int)->Unit){
+    fun readBlock(dimId:Int, chunkPos: ConeChunkPos, doForEachBlock : (BlockPos, Int, ByteArray)->Unit){
         BlockStateTable.select {
             (BlockStateTable.chunkPos eq chunkPos.asInt)
                 .and (BlockStateTable.roomId eq id)
@@ -103,13 +102,13 @@ data class Room(
         }.forEach {
             val bsid = it[BlockStateTable.blockStateId]
             val bpos = BlockPos(it[BlockStateTable.blockPos])
-            doForEachBlockStateId.invoke(bpos,bsid)
+            doForEachBlock.invoke(bpos,bsid)
         }
 
     }
 
     //写方块
-    fun writeBlock(packet: WriteBlockC2SPacket) {
+    fun writeBlock(packet: BD) {
         BlockStateTable.upsert(BlockStateTable.roomId,BlockStateTable.dimId,BlockStateTable.blockPos) {
             it[roomId]= id
             it[dimId] = packet.dimId
@@ -121,7 +120,7 @@ data class Room(
 
 
     //广播数据包（除了自己）
-    fun broadcastPacket(packet: BufferWritable,sender : Player) {
+    fun broadcastPacket(packet: BufferWritable,sender : ConePlayer) {
         players.forEach {
             if(sender.addr != it.value.addr){
                 ConeNetSender.sendPacket(packet, it.value.addr)
@@ -145,12 +144,12 @@ data class Room(
     companion object {
 
         //全部运行中的房间
-        private val runningRooms = hashMapOf<Int, Room>()
+        private val runningRooms = hashMapOf<Int, ConeRoom>()
         //房间是否运行中
         fun isRunning(rid: Int): Boolean {
             return runningRooms.containsKey(rid)
         }
-        fun getRunning(rid: Int) : Room?{
+        fun getRunning(rid: Int) : ConeRoom?{
             return runningRooms[rid]
         }
         //房间是否存在
@@ -159,14 +158,14 @@ data class Room(
         }
         //创建房间
         fun create(
-            player: Player,
+            player: ConePlayer,
             name: String,
             mcVersion: String,
             creative: Boolean,
             fabric: Boolean,
             blockStateAmount: Int
         ): Int {
-            Room(
+            ConeRoom(
                 0,
                 name,
                 player.id,
@@ -181,8 +180,8 @@ data class Room(
             }
         }
         //读取房间信息
-        private fun readFromRow(row: RoomInfoRow): Room {
-            return Room(
+        private fun readFromRow(row: RoomInfoRow): ConeRoom {
+            return ConeRoom(
                 row.id.value,
                 row.name,
                 row.ownerId,
@@ -196,7 +195,7 @@ data class Room(
 
 
         //读取房间数据
-        fun read(rid: Int): Room? {
+        fun read(rid: Int): ConeRoom? {
             return readFromRow(RoomInfoRow.findById(rid)?:return null)
         }
         //查房主ID

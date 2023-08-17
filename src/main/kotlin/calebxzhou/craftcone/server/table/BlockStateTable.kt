@@ -1,6 +1,7 @@
 package calebxzhou.craftcone.server.table
 
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.stringLiteral
 
 /**
  * Created  on 2023-08-07,7:17.
@@ -11,6 +12,7 @@ object BlockStateTable: Table("block_state") {
     val blockPos = long("block_pos")
     val chunkPos = integer("chunk_pos")
     val blockStateId = integer("block_state_id")
+    val tag = stringLiteral("tag")
 
     override val primaryKey = PrimaryKey(roomId,dimId, blockPos, name = "PK_RoomDimBpos")
     init {
