@@ -1,9 +1,12 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.net.ConeNetSender
+import calebxzhou.craftcone.net.coneErrD
+import calebxzhou.craftcone.net.coneSenP
 import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.game.PlayerJoinedRoomS2CPacket
+import calebxzhou.craftcone.net.protocol.game.PlayerLeftRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
-import calebxzhou.craftcone.net.protocol.room.PlayerJoinedRoomS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.PlayerInfoRow
 import calebxzhou.craftcone.server.table.PlayerInfoTable
@@ -48,15 +51,15 @@ data class ConePlayer(
 
     //加入房间
     fun joinRoom(rid: Int): Boolean {
-        val room = if(!ConeRoom.isRunning(rid)){
+        val room = if (!ConeRoom.isRunning(rid)) {
             ConeRoom.read(rid)?.also {
                 it.start()
-            }?:let {
+            } ?: let {
                 logger.warn { "$this 请求加入不存在的房间 $rid" }
                 return false
             }
-        }else{
-            ConeRoom.getRunning(rid)?:let {
+        } else {
+            ConeRoom.getRunning(rid) ?: let {
                 logger.warn { "$this 请求加入未运行的房间 $rid" }
                 return false
             }
@@ -64,7 +67,7 @@ data class ConePlayer(
         ConeNetSender.sendPacket(room, this)
         room.playerJoin(this)
         this.nowPlayingRoom = room
-        room.broadcastPacket(PlayerJoinedRoomS2CPacket(id,name),this)
+        room.broadcastPacket(PlayerJoinedRoomS2CPacket(id, name), this)
         logger.info { "$this 加入了房间 $room" }
         return true
     }
@@ -75,20 +78,27 @@ data class ConePlayer(
             logger.info { "$this 未加入任何房间就请求离开" }
             return
         }
+        room.broadcastPacket(PlayerLeftRoomS2CPacket(id),this)
         logger.info { "$this 已离开房间 $room" }
         nowPlayingRoom = null
         room.playerLeave(this)
 
     }
+
     //已创建房间数量
     val ownRoomAmount: Int
         get() = RoomInfoRow.find { RoomInfoTable.ownerId eq id }.count().toInt()
+
+    //拥有的房间
+    val ownRoom
+        get() = RoomInfoRow.find { RoomInfoTable.ownerId eq id }.firstOrNull()?.also { ConeRoom.ofRow(it) }
+
     override fun toString(): String {
         return "$name($id)"
     }
 
     fun sendPacket(packet: BufferWritable) {
-        ConeNetSender.sendPacket(packet,this)
+        ConeNetSender.sendPacket(packet, this)
     }
 
 
@@ -104,6 +114,7 @@ data class ConePlayer(
             return !PlayerInfoTable.select { PlayerInfoTable.id eq pid }.empty()
 
         }
+
         fun exists(name: String): Boolean {
             return !PlayerInfoTable.select { PlayerInfoTable.name eq name }.empty()
 
@@ -112,12 +123,12 @@ data class ConePlayer(
         //注册
         fun register(pwd: String, pName: String, clientAddress: InetSocketAddress) {
             if (exists(pName)) {
-                logger.info { "$pName 已注册过了，不允许再注册！" }
-                return ;
+                coneErrD(clientAddress, "注册过了")
+                return
             }
             val player = ConePlayer(0, pName, pwd, System.currentTimeMillis())
             logger.info { "$player 已注册" }
-            ConeNetSender.sendPacket(OkDataS2CPacket(),clientAddress)
+            coneSenP(clientAddress, OkDataS2CPacket())
         }
 
         //读取玩家信息
@@ -127,15 +138,15 @@ data class ConePlayer(
 
         //读取玩家信息
         fun read(pid: Int): ConePlayer? {
-            return readFromRow(PlayerInfoRow.findById(pid)?:return null)
+            return readFromRow(PlayerInfoRow.findById(pid) ?: return null)
         }
 
         //登录
-        fun login(pid: Int, pwd: String, addr: InetSocketAddress): Boolean {
+        fun login(pid: Int, pwd: String, addr: InetSocketAddress) {
             val find = PlayerInfoRow.find {
                 (PlayerInfoTable.id eq pid) and (PlayerInfoTable.pwd eq pwd)
             }
-            val pwdCorrect = find.count()>0
+            val pwdCorrect = find.count() > 0
             return if (pwdCorrect) {
                 val player = readFromRow(find.first())
                 player.addr = addr
@@ -144,9 +155,9 @@ data class ConePlayer(
                 addrToPlayer += Pair(player.addr, player)
                 logger.info { "$player 已上线！" }
 
-                true
+                coneSenP(addr, OkDataS2CPacket(null))
             } else {
-                false
+                coneErrD(addr, "用户UID和密码不匹配")
             }
         }
 
@@ -155,11 +166,6 @@ data class ConePlayer(
         fun getByAddr(addr: InetSocketAddress): ConePlayer? {
             return addrToPlayer[addr]
         }
-
-
-
-
-
 
 
     }

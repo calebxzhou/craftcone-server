@@ -11,17 +11,16 @@ import calebxzhou.craftcone.server.entity.ConeRoom
  * Created  on 2023-07-06,8:48.
  */
 //玩家离开房间
-class PlayerLeaveRoomC2SPacket : Packet, InRoomProcessable {
+class LeaveRoomC2SPacket : Packet, InRoomProcessable {
 
-    companion object : BufferReadable<PlayerLeaveRoomC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): PlayerLeaveRoomC2SPacket {
-            return PlayerLeaveRoomC2SPacket()
+    companion object : BufferReadable<LeaveRoomC2SPacket>{
+        override fun read(buf: FriendlyByteBuf): LeaveRoomC2SPacket {
+            return LeaveRoomC2SPacket()
         }
     }
 
     override fun process(player: ConePlayer, playingRoom: ConeRoom) {
         player.leaveRoom()
-        playingRoom.broadcastPacket(PlayerLeftRoomS2CPacket(player.id),player)
     }
 
 }

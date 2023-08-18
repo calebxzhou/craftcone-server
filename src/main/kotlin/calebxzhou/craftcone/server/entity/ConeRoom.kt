@@ -2,8 +2,11 @@ package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.coneErrD
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
+import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.RoomInfoRow
@@ -94,7 +97,7 @@ data class ConeRoom(
         Files.writeString(statePath.resolve("$id"), state)
     }*/
     //读方块
-    fun readBlock(dimId:Int, chunkPos: ConeChunkPos, doForEachBlock : (BlockPos, Int, ByteArray)->Unit){
+    fun readBlock(dimId:Int, chunkPos: ConeChunkPos, doForEachBlock : (BlockPos, Int, String?)->Unit){
         BlockStateTable.select {
             (BlockStateTable.chunkPos eq chunkPos.asInt)
                 .and (BlockStateTable.roomId eq id)
@@ -102,19 +105,21 @@ data class ConeRoom(
         }.forEach {
             val bsid = it[BlockStateTable.blockStateId]
             val bpos = BlockPos(it[BlockStateTable.blockPos])
-            doForEachBlock.invoke(bpos,bsid)
+            val tag = it[BlockStateTable.tag]
+            doForEachBlock.invoke(bpos,bsid,tag)
         }
 
     }
 
     //写方块
-    fun writeBlock(packet: BD) {
+    fun writeBlock(packet: BlockDataC2CPacket) {
         BlockStateTable.upsert(BlockStateTable.roomId,BlockStateTable.dimId,BlockStateTable.blockPos) {
             it[roomId]= id
             it[dimId] = packet.dimId
             it[blockPos] = packet.bpos.asLong
-            it[chunkPos] = packet.cpos.asInt
+            it[chunkPos] = packet.bpos.chunkPos.asInt
             it[blockStateId] = packet.stateId
+            packet.tag?.run { it[tag]=this  }
         }
     }
 
@@ -127,7 +132,6 @@ data class ConeRoom(
             }
         }
     }
-
 
 
     /*fun readBlockStateId(dimId: Int, bpos: BlockPos): Int {
@@ -157,15 +161,21 @@ data class ConeRoom(
             return !RoomInfoTable.select { RoomInfoTable.id eq rid }.empty()
         }
         //创建房间
-        fun create(
+        fun onCreate(
             player: ConePlayer,
             name: String,
             mcVersion: String,
             creative: Boolean,
             fabric: Boolean,
             blockStateAmount: Int
-        ): Int {
-            ConeRoom(
+        ) {
+
+            val ownRoom = player.ownRoom
+            if(ownRoom != null){
+                coneErrD(player,"建过房间了,ID=${ownRoom.id}")
+                return
+            }
+            val rid = ConeRoom(
                 0,
                 name,
                 player.id,
@@ -175,12 +185,11 @@ data class ConeRoom(
                 blockStateAmount,
                 Random.nextLong(),
                 System.currentTimeMillis()
-            ).also {
-                return it.insert().id.value
-            }
+            ).insert().id.value
+            player.sendPacket(OkDataS2CPacket{it.writeVarInt(rid)})
         }
         //读取房间信息
-        private fun readFromRow(row: RoomInfoRow): ConeRoom {
+        fun ofRow(row: RoomInfoRow): ConeRoom {
             return ConeRoom(
                 row.id.value,
                 row.name,
@@ -196,12 +205,29 @@ data class ConeRoom(
 
         //读取房间数据
         fun read(rid: Int): ConeRoom? {
-            return readFromRow(RoomInfoRow.findById(rid)?:return null)
+            return ofRow(RoomInfoRow.findById(rid)?:return null)
         }
         //查房主ID
         fun getOwnerId(rid: Int) : Int{
             val room = RoomInfoRow.findById(rid)?:return -1
             return room.ownerId
+        }
+        //收到删除请求
+        fun onDelete(player: ConePlayer,rid:Int){
+            val ownerId = getOwnerId(rid)
+            if(ownerId < 0 || ownerId != player.id){
+                coneErrD(player,"你没有房间")
+                return
+            }
+            if(delete(rid)){
+                player.sendPacket(OkDataS2CPacket())
+            }
+        }
+        //收到读取请求
+        fun onGet(player: ConePlayer, rid:Int){
+            read(rid)?.also { player.sendPacket(it) }?.run {
+                coneErrD(player,"找不到房间$rid")
+            }
         }
         //删除房间
         fun delete(rid :Int) : Boolean{

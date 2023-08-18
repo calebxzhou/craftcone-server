@@ -10,12 +10,12 @@ import calebxzhou.craftcone.server.entity.ConePlayer
  * Created  on 2023-07-06,8:48.
  */
 //玩家请求加入房间
-data class PlayerJoinRoomC2SPacket(
+data class JoinRoomC2SPacket(
     val rid: Int
 ): Packet, AfterLoginProcessable {
-    companion object : BufferReadable<PlayerJoinRoomC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): PlayerJoinRoomC2SPacket {
-            return PlayerJoinRoomC2SPacket(buf.readVarInt())
+    companion object : BufferReadable<JoinRoomC2SPacket>{
+        override fun read(buf: FriendlyByteBuf): JoinRoomC2SPacket {
+            return JoinRoomC2SPacket(buf.readVarInt())
         }
 
     }
