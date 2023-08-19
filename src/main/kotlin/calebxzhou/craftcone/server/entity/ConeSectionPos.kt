@@ -3,7 +3,7 @@ package calebxzhou.craftcone.server.entity
 /**
  * Created  on 2023-08-06,13:49.
  */
-data class SectionPos(val x:Int, val y:Int, val z:Int){
+data class ConeSectionPos(val x:Int, val y:Int, val z:Int){
     constructor(l: Long) : this((l shl 0 shr 42).toInt(), (l shl 44 shr 44).toInt(), (l shl 22 shr 42).toInt())
     //constructor(string: String) : this(string.split(",")[0].toInt(),string.split(",")[1].toInt(),string.split(",")[2].toInt())
     val asLong: Long

@@ -11,8 +11,6 @@ import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.RoomInfoRow
 import calebxzhou.craftcone.server.table.RoomInfoTable
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -23,7 +21,6 @@ import kotlin.random.Random
 /**
  * Created  on 2023-08-03,13:20.
  */
-@Serializable
 data class ConeRoom(
     //房间ID
     val id: Int,
@@ -57,9 +54,12 @@ data class ConeRoom(
         buf.writeLong(createTime)
     }
 
-    @Transient
-    //正在游玩 当前房间的 玩家list
+    //房间在线玩家list
     val players = hashMapOf<Int, ConePlayer>()
+    //保存区块
+    val savedChunks = arrayListOf<ConeChunkPos>()
+
+
 
     //启动房间
     fun start(){
@@ -89,24 +89,17 @@ data class ConeRoom(
     fun playerLeave(player: ConePlayer) {
         players.remove(player.id)
     }
-
-    //保存方块状态&id
-    /*fun saveBlockState(id: Int, state: String) {
-        val statePath = profilePath.resolve("block_state/")
-        Files.createDirectories(statePath)
-        Files.writeString(statePath.resolve("$id"), state)
-    }*/
     //读方块
-    fun readBlock(dimId:Int, chunkPos: ConeChunkPos, doForEachBlock : (BlockPos, Int, String?)->Unit){
+    fun readBlock(dimId:Int, chunkPos: ConeChunkPos, doForEachBlock : (ConeBlockPos, Int, String?)->Unit){
         BlockStateTable.select {
             (BlockStateTable.chunkPos eq chunkPos.asInt)
                 .and (BlockStateTable.roomId eq id)
                 .and(BlockStateTable.dimId eq dimId)
         }.forEach {
             val bsid = it[BlockStateTable.blockStateId]
-            val bpos = BlockPos(it[BlockStateTable.blockPos])
+            val bpos = ConeBlockPos(it[BlockStateTable.blockPos])
             val tag = it[BlockStateTable.tag]
-            doForEachBlock.invoke(bpos,bsid,tag)
+            doForEachBlock(bpos,bsid,tag)
         }
 
     }

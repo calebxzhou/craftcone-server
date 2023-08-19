@@ -5,17 +5,12 @@ import org.jetbrains.exposed.sql.Table
 /**
  * Created  on 2023-08-07,7:17.
  */
-object BlockStateTable: Table("block_state") {
+object RoomSavedChunksTable: Table("room_saved_chunks") {
     val roomId = integer("room_id").references(RoomInfoTable.id)
     val dimId = integer("dim_id")
-    val blockPos = long("block_pos")
     val chunkPos = integer("chunk_pos")
-    val blockStateId = integer("block_state_id")
-    val tag = text("tag").nullable()
-
-    override val primaryKey = PrimaryKey(roomId,dimId, blockPos, name = "PK_RoomDimBpos")
     init {
-        index(false, roomId, dimId, chunkPos)
+        index(false, roomId, dimId)
     }
 }/*
 class BlockState(roomId: EntityID<UUID>,dimId:EntityID<Int>,blockPos: EntityID<Long>) : Entity{

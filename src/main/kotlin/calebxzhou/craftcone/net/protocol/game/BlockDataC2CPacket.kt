@@ -5,7 +5,7 @@ import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.server.entity.BlockPos
+import calebxzhou.craftcone.server.entity.ConeBlockPos
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
 
@@ -17,7 +17,7 @@ data class BlockDataC2CPacket(
     //维度ID
     val dimId: Int,
     //方块位置
-    val bpos: BlockPos,
+    val bpos: ConeBlockPos,
     //状态ID
     val stateId: Int,
     //nbt
@@ -26,7 +26,7 @@ data class BlockDataC2CPacket(
     companion object : BufferReadable<BlockDataC2CPacket> {
         override fun read(buf: FriendlyByteBuf) = BlockDataC2CPacket(
             buf.readVarInt(),
-            BlockPos(buf.readLong()),
+            ConeBlockPos(buf.readLong()),
             buf.readVarInt(),
             buf.readUtf()
         )
