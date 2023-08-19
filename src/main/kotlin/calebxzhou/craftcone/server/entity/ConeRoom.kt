@@ -119,7 +119,7 @@ data class ConeRoom(
             it[blockPos] = packet.bpos.asLong
             it[chunkPos] = packet.bpos.chunkPos.asInt
             it[blockStateId] = packet.stateId
-            packet.tag?.run { it[tag]=this  }
+            it[tag]=packet.tag
         }
     }
 
@@ -225,7 +225,7 @@ data class ConeRoom(
         }
         //收到读取请求
         fun onGet(player: ConePlayer, rid:Int){
-            read(rid)?.also { player.sendPacket(it) }?.run {
+            read(rid)?.let { player.sendPacket(it) }?:run {
                 coneErrD(player,"找不到房间$rid")
             }
         }

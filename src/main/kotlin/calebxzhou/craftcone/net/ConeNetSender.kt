@@ -45,6 +45,10 @@ fun coneErrD(player: ConePlayer,msg:String){
 fun coneErrD(clientAddress: InetSocketAddress,msg:String){
     ConeNetSender.sendPacket(SysMsgS2CPacket(MsgType.Dialog,MsgLevel.Err,msg),clientAddress)
 }
+//客户端消息弹框
+fun coneInfoT(clientAddress: InetSocketAddress,msg: String){
+    ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Toast,MsgLevel.Info,msg))
+}
 //发包
 fun coneSenP(clientAddress: InetSocketAddress, packet: BufferWritable){
     ConeNetSender.sendPacket(clientAddress,packet)

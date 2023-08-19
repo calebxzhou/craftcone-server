@@ -2,6 +2,7 @@ package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.coneErrD
+import calebxzhou.craftcone.net.coneInfoT
 import calebxzhou.craftcone.net.coneSenP
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.game.PlayerJoinedRoomS2CPacket
@@ -128,7 +129,8 @@ data class ConePlayer(
             }
             val player = ConePlayer(0, pName, pwd, System.currentTimeMillis())
             logger.info { "$player 已注册" }
-            coneSenP(clientAddress, OkDataS2CPacket())
+
+            coneSenP(clientAddress, OkDataS2CPacket{it.writeVarInt(player.insert())})
         }
 
         //读取玩家信息
@@ -156,6 +158,7 @@ data class ConePlayer(
                 logger.info { "$player 已上线！" }
 
                 coneSenP(addr, OkDataS2CPacket(null))
+                coneInfoT(addr,"欢迎来到服务器！")
             } else {
                 coneErrD(addr, "用户UID和密码不匹配")
             }

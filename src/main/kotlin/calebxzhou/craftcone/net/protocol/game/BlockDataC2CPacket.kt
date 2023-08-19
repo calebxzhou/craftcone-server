@@ -45,7 +45,7 @@ data class BlockDataC2CPacket(
     override fun process(player: ConePlayer, playingRoom: ConeRoom) {
         playingRoom.broadcastPacket(this,player)
         //只有save chunk才保存方块
-        //playingRoom.writeBlock(WriteBlockC2SPacket(dimId, BlockPos(bpos),stateId))
+        playingRoom.writeBlock(this)
     }
 
 
