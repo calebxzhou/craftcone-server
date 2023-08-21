@@ -9,25 +9,31 @@ import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.logger
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.channel.socket.DatagramPacket
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 
 /**
  * Created  on 2023-07-18,21:14.
  */
 object ConeNetSender {
+    private val senderScope = CoroutineScope(Dispatchers.IO)
     @JvmStatic
     fun sendPacket(address: InetSocketAddress,packet: BufferWritable){
-        val data = FriendlyByteBuf(PooledByteBufAllocator.DEFAULT.directBuffer())
-        val packetId = ConePacketSet.getPacketId(packet.javaClass)?: let{
-            logger.error("找不到$packet 对应的包ID")
-            return
+        senderScope.launch {
+            val data = FriendlyByteBuf(PooledByteBufAllocator.DEFAULT.directBuffer())
+            val packetId = ConePacketSet.getPacketId(packet.javaClass)?: let{
+                logger.error("找不到$packet 对应的包ID")
+                return@launch
+            }
+            data.writeByte(packetId)
+            //写入包数据
+            packet.write(data)
+            //发走
+            val udpPacket = DatagramPacket(data,address)
+            ConeServer.channelFuture.channel().writeAndFlush(udpPacket)
         }
-        data.writeByte(packetId)
-        //写入包数据
-        packet.write(data)
-        //发走
-        val udpPacket = DatagramPacket(data,address)
-        ConeServer.channelFuture.channel().writeAndFlush(udpPacket)
     }
     @JvmStatic
     fun sendPacket(packet: BufferWritable, player: ConePlayer){

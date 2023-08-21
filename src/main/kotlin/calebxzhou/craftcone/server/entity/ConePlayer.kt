@@ -5,8 +5,6 @@ import calebxzhou.craftcone.net.coneErrD
 import calebxzhou.craftcone.net.coneInfoT
 import calebxzhou.craftcone.net.coneSenP
 import calebxzhou.craftcone.net.protocol.BufferWritable
-import calebxzhou.craftcone.net.protocol.game.PlayerJoinedRoomS2CPacket
-import calebxzhou.craftcone.net.protocol.game.PlayerLeftRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.PlayerInfoRow
@@ -41,21 +39,6 @@ data class ConePlayer(
 
     }
 
-
-    //离开房间
-    fun leaveRoom() {
-        val room = nowPlayingRoom ?: let {
-            logger.info { "$this 未加入任何房间就请求离开" }
-            return
-        }
-        room.broadcastPacket(PlayerLeftRoomS2CPacket(id),this)
-        logger.info { "$this 已离开房间 $room" }
-        nowPlayingRoom = null
-        room.playerLeave(this)
-
-    }
-
-
     override fun toString(): String {
         return "$name($id)"
     }
@@ -72,15 +55,9 @@ data class ConePlayer(
         //玩家ip to 玩家
         private val addrToPlayer = hashMapOf<InetSocketAddress, ConePlayer>()
 
-        //是否注册过
-        fun exists(pid: Int): Boolean {
-            return !PlayerInfoTable.select { PlayerInfoTable.id eq pid }.empty()
-
-        }
-
+        //用户名是否存在
         fun exists(name: String): Boolean {
             return !PlayerInfoTable.select { PlayerInfoTable.name eq name }.empty()
-
         }
 
         //注册

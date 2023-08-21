@@ -11,7 +11,6 @@ import calebxzhou.craftcone.net.protocol.room.*
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.InetSocketAddress
 
 /**
@@ -82,9 +81,7 @@ object ConePacketSet {
                     logger.error { "找不到ID$packetId 的包" }
                     return
                 }
-                transaction {
-                    processPacket(clientAddr,packet)
-                }
+                processPacket(clientAddr,packet)
             }
             else -> {
                 logger.error { "$clientAddr 客户端只能传入c2s包 ID$packetId 不是c2s包" }
@@ -117,7 +114,7 @@ object ConePacketSet {
                     logger.error { "$clientAddr 想要处理包 ${packet.javaClass.simpleName} 但是此人未登录" }
                     return
                 }
-                val room = player.nowPlayingRoom ?: let {
+                val room = ConeRoom.getPlayerPlayingRoom(player.id) ?: let {
                     logger.error { "$player 想要处理包 ${packet.javaClass.simpleName} 但是此人未加入任何房间" }
                     return
                 }

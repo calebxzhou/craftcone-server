@@ -7,6 +7,7 @@ import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
 import calebxzhou.craftcone.net.protocol.game.PlayerJoinedRoomS2CPacket
+import calebxzhou.craftcone.net.protocol.game.PlayerLeftRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.BlockStateTable
@@ -17,6 +18,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
 import kotlin.random.Random
 
@@ -74,18 +76,20 @@ data class ConeRoom(
 
     //新增房间
     fun insert(): RoomInfoRow {
-        return RoomInfoRow.new {
-            name = this@ConeRoom.name
-            ownerId = this@ConeRoom.ownerId
-            mcVersion = this@ConeRoom.mcVersion
-            isFabric = this@ConeRoom.isFabric
-            isCreative = this@ConeRoom.isCreative
-            blockStateAmount = this@ConeRoom.blockStateAmount
-            seed = this@ConeRoom.seed
-            createTime = this@ConeRoom.createTime
+        return transaction {
+            RoomInfoRow.new {
+                name = this@ConeRoom.name
+                ownerId = this@ConeRoom.ownerId
+                mcVersion = this@ConeRoom.mcVersion
+                isFabric = this@ConeRoom.isFabric
+                isCreative = this@ConeRoom.isCreative
+                blockStateAmount = this@ConeRoom.blockStateAmount
+                seed = this@ConeRoom.seed
+                createTime = this@ConeRoom.createTime
+            }
         }
     }
-    //读方块
+    //读方块并执行操作
     fun readBlock(dimId:Int, chunkPos: ConeChunkPos, doForEachBlock : (ConeBlockPos, Int, String?)->Unit){
         BlockStateTable.select {
             (BlockStateTable.chunkPos eq chunkPos.asInt)
@@ -157,6 +161,9 @@ data class ConeRoom(
                 row.createTime,
                 savedChunks)
         }
+        fun getPlayerPlayingRoom(pid: Int): ConeRoom? {
+            return pidToPlayingRoom[pid]
+        }
         //创建房间
         fun onCreate(
             player: ConePlayer,
@@ -171,19 +178,21 @@ data class ConeRoom(
                 coneErrD(player,"建过房间了,ID=${ownRoom.id}")
                 return
             }
-            val rid = ConeRoom(
-                0,
-                name,
-                player.id,
-                mcVersion,
-                fabric,
-                creative,
-                blockStateAmount,
-                Random.nextLong(),
-                System.currentTimeMillis(),
-                arrayListOf()
-            ).insert().id.value
-            player.sendPacket(OkDataS2CPacket{it.writeVarInt(rid)})
+            transaction {
+                val rid  = ConeRoom(
+                    0,
+                    name,
+                    player.id,
+                    mcVersion,
+                    fabric,
+                    creative,
+                    blockStateAmount,
+                    Random.nextLong(),
+                    System.currentTimeMillis(),
+                    arrayListOf()
+                ).insert().id.value
+                player.sendPacket(OkDataS2CPacket{it.writeVarInt(rid)})
+            }
         }
 
         //当玩家加入
@@ -225,6 +234,7 @@ data class ConeRoom(
             pidToPlayingRoom[player.id]?.let {
                 it.onlinePlayers -= player.id
                 pidToPlayingRoom -= player.id
+                it.broadcastPacket(PlayerLeftRoomS2CPacket(player.id),player)
             }?:let{
                 logger.warn { "$player 没有加入任何房间就请求离开了" }
                 return
@@ -239,11 +249,6 @@ data class ConeRoom(
         //读取房间数据 ，不存在则null
         fun selectByRoomId(rid: Int): ConeRoom? {
             return ofRow(RoomInfoRow.findById(rid)?:return null)
-        }
-        //查房主ID
-        fun getOwnerId(rid: Int) : Int{
-            val room = RoomInfoRow.findById(rid)?:return -1
-            return room.ownerId
         }
 
     }

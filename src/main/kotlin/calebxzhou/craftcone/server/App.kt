@@ -3,6 +3,7 @@ package calebxzhou.craftcone.server
 import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.PlayerInfoTable
 import calebxzhou.craftcone.server.table.RoomInfoTable
+import calebxzhou.craftcone.server.table.RoomSavedChunksTable
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -17,7 +18,7 @@ fun main(args: Array<String>) {
     transaction {
         addLogger(Slf4jSqlDebugLogger)
         logger.info { "初始化数据结构" }
-        SchemaUtils.create(PlayerInfoTable,RoomInfoTable,BlockStateTable)
+        SchemaUtils.create(PlayerInfoTable,RoomInfoTable,BlockStateTable,RoomSavedChunksTable)
     }
     ConeServer.start(19198)
 }
