@@ -130,6 +130,43 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
         writeByte(input)
         return this
     }
+
+    /**
+     * Writes an array of VarInts to the buffer, prefixed by the length of the array (as a VarInt).
+     *
+     * @see .readVarIntArray
+     *
+     *
+     * @param array the array to write
+     */
+    fun writeVarIntArray(array: IntArray): FriendlyByteBuf {
+        writeVarInt(array.size)
+        for (i in array) {
+            writeVarInt(i)
+        }
+        return this
+    }
+
+    /**
+     * Reads an array of VarInts from this buffer.
+     *
+     * @see .writeVarIntArray
+     */
+    fun readVarIntArray(): IntArray {
+        return readVarIntArray(readableBytes())
+    }
+    fun readVarIntArray(maxLength: Int): IntArray {
+        val i = readVarInt()
+        return if (i > maxLength) {
+            throw DecoderException("VarIntArray with size $i is bigger than allowed $maxLength")
+        } else {
+            val `is` = IntArray(i)
+            for (j in `is`.indices) {
+                `is`[j] = readVarInt()
+            }
+            `is`
+        }
+    }
     override fun capacity(): Int {
         return source.capacity()
     }

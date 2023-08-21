@@ -11,10 +11,6 @@ import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.PlayerInfoRow
 import calebxzhou.craftcone.server.table.PlayerInfoTable
-import calebxzhou.craftcone.server.table.RoomInfoRow
-import calebxzhou.craftcone.server.table.RoomInfoTable
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import java.net.InetSocketAddress
@@ -22,7 +18,6 @@ import java.net.InetSocketAddress
 /**
  * Created  on 2023-07-18,21:02.
  */
-@Serializable
 data class ConePlayer(
     //玩家id
     val id: Int,
@@ -32,7 +27,6 @@ data class ConePlayer(
     val pwd: String,
     //创建时间
     val createTime: Long,
-    @Transient
     //当前登录ip地址
     var addr: InetSocketAddress = InetSocketAddress(0)
 ) {
@@ -53,7 +47,7 @@ data class ConePlayer(
     //加入房间
     fun joinRoom(rid: Int): Boolean {
         val room = if (!ConeRoom.isRunning(rid)) {
-            ConeRoom.read(rid)?.also {
+            ConeRoom.selectByRoomId(rid)?.also {
                 it.start()
             } ?: let {
                 logger.warn { "$this 请求加入不存在的房间 $rid" }
@@ -86,13 +80,6 @@ data class ConePlayer(
 
     }
 
-    //已创建房间数量
-    val ownRoomAmount: Int
-        get() = RoomInfoRow.find { RoomInfoTable.ownerId eq id }.count().toInt()
-
-    //拥有的房间
-    val ownRoom
-        get() = RoomInfoRow.find { RoomInfoTable.ownerId eq id }.firstOrNull()?.also { ConeRoom.ofRow(it) }
 
     override fun toString(): String {
         return "$name($id)"

@@ -11,6 +11,7 @@ import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.RoomInfoRow
 import calebxzhou.craftcone.server.table.RoomInfoTable
+import calebxzhou.craftcone.server.table.RoomSavedChunksTable
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -40,7 +41,9 @@ data class ConeRoom(
     val seed: Long,
     //创建时间
     val createTime: Long,
-    ): Packet,BufferWritable {
+    //保存区块
+    val savedChunks: MutableList<ConeChunkPos>,
+): Packet,BufferWritable {
 
     override fun write(buf: FriendlyByteBuf) {
         buf.writeVarInt(id)
@@ -52,12 +55,11 @@ data class ConeRoom(
         buf.writeVarInt(blockStateAmount)
         buf.writeLong(seed)
         buf.writeLong(createTime)
+        buf.writeVarIntArray(savedChunks.map { it.asInt }.toIntArray())
     }
 
     //房间在线玩家list
     val players = hashMapOf<Int, ConePlayer>()
-    //保存区块
-    val savedChunks = arrayListOf<ConeChunkPos>()
 
 
 
@@ -162,8 +164,7 @@ data class ConeRoom(
             fabric: Boolean,
             blockStateAmount: Int
         ) {
-
-            val ownRoom = player.ownRoom
+            val ownRoom = getPlayerOwnRoom(player.id)
             if(ownRoom != null){
                 coneErrD(player,"建过房间了,ID=${ownRoom.id}")
                 return
@@ -177,12 +178,16 @@ data class ConeRoom(
                 creative,
                 blockStateAmount,
                 Random.nextLong(),
-                System.currentTimeMillis()
+                System.currentTimeMillis(),
+                arrayListOf()
             ).insert().id.value
             player.sendPacket(OkDataS2CPacket{it.writeVarInt(rid)})
         }
         //读取房间信息
-        fun ofRow(row: RoomInfoRow): ConeRoom {
+        private fun ofRow(row: RoomInfoRow): ConeRoom {
+            val savedChunks = RoomSavedChunksTable
+                .select { RoomSavedChunksTable.roomId eq row.id.value }
+                .map { ConeChunkPos(it[RoomSavedChunksTable.chunkPos]) }.toMutableList()
             return ConeRoom(
                 row.id.value,
                 row.name,
@@ -192,12 +197,18 @@ data class ConeRoom(
                 row.isCreative,
                 row.blockStateAmount,
                 row.seed,
-                row.createTime)
+                row.createTime,
+                savedChunks)
+        }
+
+        //玩家已创建的房间
+        fun getPlayerOwnRoom(pid: Int):ConeRoom?{
+            return RoomInfoRow.find { RoomInfoTable.ownerId eq pid }.firstOrNull()?.let { ofRow(it) }
         }
 
 
         //读取房间数据
-        fun read(rid: Int): ConeRoom? {
+        fun selectByRoomId(rid: Int): ConeRoom? {
             return ofRow(RoomInfoRow.findById(rid)?:return null)
         }
         //查房主ID
@@ -218,7 +229,7 @@ data class ConeRoom(
         }
         //收到读取请求
         fun onGet(player: ConePlayer, rid:Int){
-            read(rid)?.let { player.sendPacket(it) }?:run {
+            selectByRoomId(rid)?.let { player.sendPacket(it) }?:run {
                 coneErrD(player,"找不到房间$rid")
             }
         }
@@ -227,7 +238,9 @@ data class ConeRoom(
             if(!exists(rid))
                 return false
             RoomInfoTable.deleteWhere { RoomInfoTable.id eq rid }
-            BlockStateTable.deleteWhere { BlockStateTable.roomId eq rid }
+            BlockStateTable.deleteWhere { roomId eq rid }
+            RoomSavedChunksTable.deleteWhere { roomId eq rid }
+
             return true
         }
     }
