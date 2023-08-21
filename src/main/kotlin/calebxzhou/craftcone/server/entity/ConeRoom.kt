@@ -61,14 +61,15 @@ data class ConeRoom(
     }
 
     //房间在线玩家list
-    val players = hashMapOf<Int, ConePlayer>()
+    val onlinePlayers = hashMapOf<Int, ConePlayer>()
+
+
 
 
 
     //启动房间
     fun start(){
-        runningRooms += Pair(id, this)
-        logger.info { "$this 房间已启动" }
+
     }
 
     //新增房间
@@ -114,7 +115,7 @@ data class ConeRoom(
 
     //广播数据包（除了自己）
     fun broadcastPacket(packet: BufferWritable,sender : ConePlayer) {
-        players.forEach {
+        onlinePlayers.forEach {
             if(sender.addr != it.value.addr){
                 ConeNetSender.sendPacket(packet, it.value.addr)
             }
@@ -135,20 +136,26 @@ data class ConeRoom(
 
     companion object {
 
-        //全部运行中的房间
-        private val runningRooms = hashMapOf<Int, ConeRoom>()
-        //玩家id与正在游玩的房间
-        private val pidToPlayingRoom = hashMapOf<Int,ConeRoom>()
-        //房间是否运行中
-        fun isRunning(rid: Int): Boolean {
-            return runningRooms.containsKey(rid)
-        }
-        fun getRunning(rid: Int) : ConeRoom?{
-            return runningRooms[rid]
-        }
-        //房间是否存在
-        fun exists(rid: Int): Boolean {
-            return !RoomInfoTable.select { RoomInfoTable.id eq rid }.empty()
+        //全部运行中的房间 (rid to room)
+        private val ridToRoom: MutableMap<Int, ConeRoom> = hashMapOf()
+        //玩家id与正在游玩的房间 (pid to room)
+        private val pidToPlayingRoom: MutableMap<Int, ConeRoom> = hashMapOf()
+        //row->room
+        private fun ofRow(row: RoomInfoRow): ConeRoom {
+            val savedChunks = RoomSavedChunksTable
+                .select { RoomSavedChunksTable.roomId eq row.id.value }
+                .map { ConeChunkPos(it[RoomSavedChunksTable.chunkPos]) }.toMutableList()
+            return ConeRoom(
+                row.id.value,
+                row.name,
+                row.ownerId,
+                row.mcVersion,
+                row.isFabric,
+                row.isCreative,
+                row.blockStateAmount,
+                row.seed,
+                row.createTime,
+                savedChunks)
         }
         //创建房间
         fun onCreate(
@@ -178,60 +185,57 @@ data class ConeRoom(
             ).insert().id.value
             player.sendPacket(OkDataS2CPacket{it.writeVarInt(rid)})
         }
-        //读取房间信息
-        private fun ofRow(row: RoomInfoRow): ConeRoom {
-            val savedChunks = RoomSavedChunksTable
-                .select { RoomSavedChunksTable.roomId eq row.id.value }
-                .map { ConeChunkPos(it[RoomSavedChunksTable.chunkPos]) }.toMutableList()
-            return ConeRoom(
-                row.id.value,
-                row.name,
-                row.ownerId,
-                row.mcVersion,
-                row.isFabric,
-                row.isCreative,
-                row.blockStateAmount,
-                row.seed,
-                row.createTime,
-                savedChunks)
-        }
 
         //当玩家加入
         fun onPlayerJoin(player: ConePlayer, rid: Int){
-            val room = if (!isRunning(rid)) {
+            val room = ridToRoom[rid] ?:run {
                 selectByRoomId(rid)?.also {
-                    it.start()
+                    ridToRoom += rid to it
+                    logger.info { "$this 房间已启动" }
                 } ?: let {
                     logger.warn { "$this 请求加入不存在的房间 $rid" }
                     return
                 }
-            } else {
-                getRunning(rid) ?: let {
-                    logger.warn { "$this 请求加入未运行+启动失败的房间 $rid" }
-                    return
-                }
             }
             ConeNetSender.sendPacket(player.addr,room)
-            room.players += Pair(player.id,player)
+            room.onlinePlayers += Pair(player.id,player)
             pidToPlayingRoom += player.id to room
-            room.broadcastPacket(PlayerJoinedRoomS2CPacket(player.id, player.name), this)
+            room.broadcastPacket(PlayerJoinedRoomS2CPacket(player.id, player.name), player)
             logger.info { "$this 加入了房间 $room" }
+        }
+        //当玩家删除
+        fun onDelete(player: ConePlayer){
+            val room = getPlayerOwnRoom(player.id)?:let {
+                coneErrD(player,"你没有房间")
+                return
+            }
+            RoomSavedChunksTable.deleteWhere { roomId eq room.id }
+            BlockStateTable.deleteWhere { roomId eq room.id }
+            RoomInfoTable.deleteWhere { RoomInfoTable.id eq room.id }
+            player.sendPacket(OkDataS2CPacket())
+        }
+        //当玩家读取
+        fun onRetrieve(player: ConePlayer, rid:Int){
+            selectByRoomId(rid)?.also { player.sendPacket(it) }?:run {
+                coneErrD(player,"找不到房间$rid")
+            }
         }
         //当玩家离开
         fun onPlayerLeave(player: ConePlayer){
-            pidToPlayingRoom[pid]?.let {
-                it.players -= pid
-
+            pidToPlayingRoom[player.id]?.let {
+                it.onlinePlayers -= player.id
+                pidToPlayingRoom -= player.id
             }?:let{
-
+                logger.warn { "$player 没有加入任何房间就请求离开了" }
+                return
             }
         }
+
+
         //玩家已创建的房间
         fun getPlayerOwnRoom(pid: Int):ConeRoom?{
             return RoomInfoRow.find { RoomInfoTable.ownerId eq pid }.firstOrNull()?.let { ofRow(it) }
         }
-
-
         //读取房间数据 ，不存在则null
         fun selectByRoomId(rid: Int): ConeRoom? {
             return ofRow(RoomInfoRow.findById(rid)?:return null)
@@ -241,33 +245,7 @@ data class ConeRoom(
             val room = RoomInfoRow.findById(rid)?:return -1
             return room.ownerId
         }
-        //收到删除请求
-        fun onDelete(player: ConePlayer,rid:Int){
-            val ownerId = getOwnerId(rid)
-            if(ownerId < 0 || ownerId != player.id){
-                coneErrD(player,"你没有房间")
-                return
-            }
-            if(delete(rid)){
-                player.sendPacket(OkDataS2CPacket())
-            }
-        }
-        //收到读取请求
-        fun onGet(player: ConePlayer, rid:Int){
-            selectByRoomId(rid)?.let { player.sendPacket(it) }?:run {
-                coneErrD(player,"找不到房间$rid")
-            }
-        }
-        //删除房间
-        fun delete(rid :Int) : Boolean{
-            if(!exists(rid))
-                return false
-            RoomInfoTable.deleteWhere { RoomInfoTable.id eq rid }
-            BlockStateTable.deleteWhere { roomId eq rid }
-            RoomSavedChunksTable.deleteWhere { roomId eq rid }
 
-            return true
-        }
     }
 
 

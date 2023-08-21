@@ -12,11 +12,8 @@ import calebxzhou.craftcone.server.entity.ConeRoom
 data class SendChatMsgC2SPacket (
     val msg: String,
 ): Packet, InRoomProcessable {
-
     companion object : BufferReadable<SendChatMsgC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): SendChatMsgC2SPacket {
-            return SendChatMsgC2SPacket(buf.readUtf())
-        }
+        override fun read(buf: FriendlyByteBuf) = SendChatMsgC2SPacket(buf.readUtf())
     }
 
     override fun process(player: ConePlayer, playingRoom: ConeRoom) {

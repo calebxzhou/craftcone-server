@@ -10,17 +10,14 @@ import calebxzhou.craftcone.server.entity.ConeRoom
 /**
  * Created  on 2023-08-11,20:39.
  */
-data class DelRoomC2SPacket(
-    val rid:Int
-): Packet,AfterLoginProcessable{
+class DelRoomC2SPacket : Packet,AfterLoginProcessable{
     companion object : BufferReadable<DelRoomC2SPacket>{
         override fun read(buf: FriendlyByteBuf): DelRoomC2SPacket {
-            return DelRoomC2SPacket(buf.readVarInt())
+            return DelRoomC2SPacket()
         }
-
     }
     override fun process(player: ConePlayer) {
-        ConeRoom.onDelete(player, rid)
+        ConeRoom.onDelete(player)
     }
 
 }

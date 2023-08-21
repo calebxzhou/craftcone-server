@@ -12,7 +12,6 @@ data class PlayerJoinedRoomS2CPacket(
     val pid: Int,
     val pName: String
 ) : Packet, BufferWritable{
-
     override fun write(buf: FriendlyByteBuf) {
         buf.writeVarInt(pid).writeUtf(pName)
     }

@@ -16,5 +16,4 @@ data class PlayerMoveWpS2CPacket(
         buf.writeVarInt(pid).writeFloat(w).writeFloat(p)
     }
 
-
 }

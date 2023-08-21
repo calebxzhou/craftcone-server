@@ -20,7 +20,7 @@ data class GetRoomC2SPacket(
 
     }
     override fun process(player: ConePlayer) {
-        ConeRoom.onGet(player, rid)
+        ConeRoom.onRetrieve(player, rid)
     }
 
 }

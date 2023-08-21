@@ -17,6 +17,4 @@ data class PlayerMoveXyzS2CPacket(
         buf.writeVarInt(pid).writeFloat(x).writeFloat(y).writeFloat(z)
     }
 
-
-
 }

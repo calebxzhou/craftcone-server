@@ -12,8 +12,8 @@ import java.net.InetSocketAddress
  */
 //玩家登录请求
 data class LoginC2SPacket(
-    //玩家UUID
-    val pid: Int,
+    //玩家uid
+    val uid: Int,
     //密码
     val pwd: String,
 ) : Packet, BeforeLoginProcessable {
@@ -24,7 +24,7 @@ data class LoginC2SPacket(
     }
 
     override fun process(clientAddress: InetSocketAddress) {
-        ConePlayer.login(pid, pwd, clientAddress)
+        ConePlayer.login(uid, pwd, clientAddress)
     }
 
 
