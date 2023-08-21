@@ -6,6 +6,7 @@ import calebxzhou.craftcone.net.coneErrD
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
+import calebxzhou.craftcone.net.protocol.game.PlayerJoinedRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.BlockStateTable
@@ -45,6 +46,7 @@ data class ConeRoom(
     val savedChunks: MutableList<ConeChunkPos>,
 ): Packet,BufferWritable {
 
+    //写入到ByteBuf
     override fun write(buf: FriendlyByteBuf) {
         buf.writeVarInt(id)
         buf.writeUtf(name)
@@ -81,15 +83,6 @@ data class ConeRoom(
             seed = this@ConeRoom.seed
             createTime = this@ConeRoom.createTime
         }
-    }
-
-    //玩家加入
-    fun playerJoin(player: ConePlayer){
-        players += Pair(player.id,player)
-    }
-    //玩家离开
-    fun playerLeave(player: ConePlayer) {
-        players.remove(player.id)
     }
     //读方块
     fun readBlock(dimId:Int, chunkPos: ConeChunkPos, doForEachBlock : (ConeBlockPos, Int, String?)->Unit){
@@ -144,6 +137,8 @@ data class ConeRoom(
 
         //全部运行中的房间
         private val runningRooms = hashMapOf<Int, ConeRoom>()
+        //玩家id与正在游玩的房间
+        private val pidToPlayingRoom = hashMapOf<Int,ConeRoom>()
         //房间是否运行中
         fun isRunning(rid: Int): Boolean {
             return runningRooms.containsKey(rid)
@@ -201,13 +196,43 @@ data class ConeRoom(
                 savedChunks)
         }
 
+        //当玩家加入
+        fun onPlayerJoin(player: ConePlayer, rid: Int){
+            val room = if (!isRunning(rid)) {
+                selectByRoomId(rid)?.also {
+                    it.start()
+                } ?: let {
+                    logger.warn { "$this 请求加入不存在的房间 $rid" }
+                    return
+                }
+            } else {
+                getRunning(rid) ?: let {
+                    logger.warn { "$this 请求加入未运行+启动失败的房间 $rid" }
+                    return
+                }
+            }
+            ConeNetSender.sendPacket(player.addr,room)
+            room.players += Pair(player.id,player)
+            pidToPlayingRoom += player.id to room
+            room.broadcastPacket(PlayerJoinedRoomS2CPacket(player.id, player.name), this)
+            logger.info { "$this 加入了房间 $room" }
+        }
+        //当玩家离开
+        fun onPlayerLeave(player: ConePlayer){
+            pidToPlayingRoom[pid]?.let {
+                it.players -= pid
+
+            }?:let{
+
+            }
+        }
         //玩家已创建的房间
         fun getPlayerOwnRoom(pid: Int):ConeRoom?{
             return RoomInfoRow.find { RoomInfoTable.ownerId eq pid }.firstOrNull()?.let { ofRow(it) }
         }
 
 
-        //读取房间数据
+        //读取房间数据 ，不存在则null
         fun selectByRoomId(rid: Int): ConeRoom? {
             return ofRow(RoomInfoRow.findById(rid)?:return null)
         }

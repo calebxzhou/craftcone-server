@@ -31,9 +31,6 @@ data class ConePlayer(
     var addr: InetSocketAddress = InetSocketAddress(0)
 ) {
 
-    //正在游玩的房间
-    var nowPlayingRoom: ConeRoom? = null
-
     //保存，返回ID
     fun insert(): Int {
         return PlayerInfoRow.new {
@@ -44,28 +41,6 @@ data class ConePlayer(
 
     }
 
-    //加入房间
-    fun joinRoom(rid: Int): Boolean {
-        val room = if (!ConeRoom.isRunning(rid)) {
-            ConeRoom.selectByRoomId(rid)?.also {
-                it.start()
-            } ?: let {
-                logger.warn { "$this 请求加入不存在的房间 $rid" }
-                return false
-            }
-        } else {
-            ConeRoom.getRunning(rid) ?: let {
-                logger.warn { "$this 请求加入未运行的房间 $rid" }
-                return false
-            }
-        }
-        ConeNetSender.sendPacket(room, this)
-        room.playerJoin(this)
-        this.nowPlayingRoom = room
-        room.broadcastPacket(PlayerJoinedRoomS2CPacket(id, name), this)
-        logger.info { "$this 加入了房间 $room" }
-        return true
-    }
 
     //离开房间
     fun leaveRoom() {

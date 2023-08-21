@@ -5,6 +5,7 @@ import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 
 /**
  * Created  on 2023-07-06,8:48.
@@ -21,8 +22,8 @@ data class JoinRoomC2SPacket(
     }
 
 
-    override fun process(player: ConePlayer) {
-        player.joinRoom(rid)
+    override fun process(player: ConePlayer){
+        ConeRoom.onPlayerJoin(player,rid)
     }
 
 

@@ -13,7 +13,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 val logger = KotlinLogging.logger {}
 fun main(args: Array<String>) {
-    Database.connect("jdbc:postgresql://192.168.3.99:5432/mc", driver = "org.postgresql.Driver", user = "calebxzhou", password = "rdi")
+    Database.connect("jdbc:postgresql://sy6.calebxzhou.cn:5432/mc", driver = "org.postgresql.Driver", user = "calebxzhou", password = "rdi")
     transaction {
         addLogger(Slf4jSqlDebugLogger)
         logger.info { "初始化数据结构" }

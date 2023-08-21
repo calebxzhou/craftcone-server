@@ -1,3 +1,4 @@
+
 pluginManagement {
     repositories {
         mavenCentral()
@@ -5,5 +6,5 @@ pluginManagement {
     }
     
 }
-rootProject.name = "CraftCone-Server"
+rootProject.name = "craftcone-server"
 
