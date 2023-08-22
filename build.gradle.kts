@@ -28,6 +28,9 @@ dependencies {
 // https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("net.benwoodworth.knbt:knbt:0.11.3")
+    // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
+    implementation("com.zaxxer:HikariCP:5.0.1")
+
     implementation(kotlin("stdlib-jdk8"))
 }
 tasks.test {

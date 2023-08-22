@@ -4,6 +4,8 @@ import calebxzhou.craftcone.server.table.BlockStateTable
 import calebxzhou.craftcone.server.table.PlayerInfoTable
 import calebxzhou.craftcone.server.table.RoomInfoTable
 import calebxzhou.craftcone.server.table.RoomSavedChunksTable
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -14,7 +16,19 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 val logger = KotlinLogging.logger {}
 fun main(args: Array<String>) {
-    Database.connect("jdbc:postgresql://sy6.calebxzhou.cn:5432/mc", driver = "org.postgresql.Driver", user = "calebxzhou", password = "rdi")
+    HikariConfig().apply {
+        jdbcUrl = "jdbc:postgresql://sy6.calebxzhou.cn:5432/mc"
+        username = "calebxzhou"
+        password = "rdi"
+        maximumPoolSize = 32768
+        minimumIdle = 32
+        isAutoCommit = true
+        dataSourceProperties += "cachePrepStmts" to "true"
+        dataSourceProperties += "prepStmtCacheSize" to "1024"
+        dataSourceProperties += "prepStmtCacheSqlLimit" to "8192"
+    }.also {
+        Database.connect(HikariDataSource(it))
+    }
     transaction {
         addLogger(Slf4jSqlDebugLogger)
         logger.info { "初始化数据结构" }

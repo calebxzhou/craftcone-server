@@ -67,29 +67,39 @@ data class ConeRoom(
 
 
     //读方块并执行操作
-    fun readBlock(dimId: Int, chunkPos: ConeChunkPos, doForEachBlock: (ConeBlockPos, Int, String?) -> Unit) {
-        BlockStateTable.select {
-            (BlockStateTable.chunkPos eq chunkPos.asInt)
-                .and(BlockStateTable.roomId eq id)
-                .and(BlockStateTable.dimId eq dimId)
-        }.forEach {
-            val bsid = it[BlockStateTable.blockStateId]
-            val bpos = ConeBlockPos(it[BlockStateTable.blockPos])
-            val tag = it[BlockStateTable.tag]
-            doForEachBlock(bpos, bsid, tag)
+    fun readBlock(dimId: Int, chunkPosi: Int, doForEachBlock: (ConeBlockPos, Int, String?) -> Unit) {
+        transaction {
+            BlockStateTable.select {
+                (BlockStateTable.chunkPos eq chunkPosi)
+                    .and(BlockStateTable.roomId eq this@ConeRoom.id)
+                    .and(BlockStateTable.dimId eq dimId)
+            }.forEach {
+                val bsid = it[BlockStateTable.blockStateId]
+                val bpos = ConeBlockPos(it[BlockStateTable.blockPos])
+                val tag = it[BlockStateTable.tag]
+                tag?.isNotBlank()?.let { bl ->
+                    if(bl){
+                        logger.info { "读取方块${bpos} ${bpos.chunkPos.x} ${bpos.chunkPos.z}（$bsid $tag）" }
+                    }
+                }
+
+                doForEachBlock(bpos, bsid, tag)
+            }
         }
 
     }
 
     //写方块
     fun writeBlock(packet: BlockDataC2CPacket) {
-        BlockStateTable.upsert(BlockStateTable.roomId, BlockStateTable.dimId, BlockStateTable.blockPos) {
-            it[roomId] = id
-            it[dimId] = packet.dimId
-            it[blockPos] = packet.bpos.asLong
-            it[chunkPos] = packet.bpos.chunkPos.asInt
-            it[blockStateId] = packet.stateId
-            it[tag] = packet.tag
+        transaction {
+            BlockStateTable.upsert(BlockStateTable.roomId, BlockStateTable.dimId, BlockStateTable.blockPos) {
+                it[roomId] = this@ConeRoom.id
+                it[dimId] = packet.dimId
+                it[blockPos] = packet.bpos.asLong
+                it[chunkPos] = packet.bpos.chunkPos.asInt
+                it[blockStateId] = packet.stateId
+                it[tag] = packet.tag
+            }
         }
     }
 
@@ -126,24 +136,25 @@ data class ConeRoom(
         //row->room
         private fun ofRow(row: RoomInfoRow): ConeRoom {
             return transaction {
-                RoomSavedChunksTable
+                ConeRoom(
+                    row.id.value,
+                    row.name,
+                    row.ownerId,
+                    row.mcVersion,
+                    row.isFabric,
+                    row.isCreative,
+                    row.blockStateAmount,
+                    row.seed,
+                    row.createTime,
+                    arrayListOf()
+                )
+                /*RoomSavedChunksTable
                     .select { RoomSavedChunksTable.roomId eq row.id.value }
                     .map { ConeChunkPos(it[RoomSavedChunksTable.chunkPos]) }
                     .toMutableList()
                     .let {
-                        return@transaction ConeRoom(
-                            row.id.value,
-                            row.name,
-                            row.ownerId,
-                            row.mcVersion,
-                            row.isFabric,
-                            row.isCreative,
-                            row.blockStateAmount,
-                            row.seed,
-                            row.createTime,
-                            it
-                        )
-                    }
+                        return@transaction
+                    }*/
             }
 
         }
@@ -153,7 +164,7 @@ data class ConeRoom(
         }
 
         //创建房间（数据库操作），返回房间ID
-        private fun create(room: ConeRoom): Int {
+        private fun insert(room: ConeRoom): Int {
             return transaction {
                 RoomInfoRow.new {
                     name = room.name
@@ -168,17 +179,20 @@ data class ConeRoom(
             }
         }
         //删除房间（数据库操作）
-        private fun delete(rid: Int){
+        private fun deleteById(rid: Int){
             transaction {
                 RoomSavedChunksTable.deleteWhere { roomId eq rid }
                 BlockStateTable.deleteWhere { roomId eq rid }
                 RoomInfoTable.deleteWhere { RoomInfoTable.id eq rid }
             }
         }
-        //读取房间数据 ，不存在则null
-        fun retrieve(rid: Int): ConeRoom? {
-            return ofRow(RoomInfoRow.findById(rid) ?: return null)
+        //读取房间数据（数据库操作） ，不存在则null
+        fun selectById(rid: Int): ConeRoom? {
+            return transaction {
+                ofRow(RoomInfoRow.findById(rid) ?: return@transaction null)
+            }
         }
+
         //创建房间
         fun onCreate(
             player: ConePlayer,
@@ -205,7 +219,7 @@ data class ConeRoom(
                 System.currentTimeMillis(),
                 arrayListOf()
             )
-            val rid = create(room)
+            val rid = insert(room)
             player.sendPacket(OkDataS2CPacket { it.writeVarInt(rid) })
 
 
@@ -214,11 +228,11 @@ data class ConeRoom(
         //当玩家加入
         fun onPlayerJoin(player: ConePlayer, rid: Int) {
             val room = ridToRoom[rid] ?: run {
-                retrieve(rid)?.also {
+                selectById(rid)?.also {
                     ridToRoom += rid to it
-                    logger.info { "$this 房间已启动" }
+                    logger.info { "$it 房间已启动" }
                 } ?: let {
-                    logger.warn { "$this 请求加入不存在的房间 $rid" }
+                    logger.warn { "$it 请求加入不存在的房间 $rid" }
                     return
                 }
             }
@@ -226,7 +240,7 @@ data class ConeRoom(
             room.onlinePlayers += player.id to player
             pidToPlayingRoom += player.id to room
             room.broadcastPacket(PlayerJoinedRoomS2CPacket(player.id, player.name), player)
-            logger.info { "$this 加入了房间 $room" }
+            logger.info { "$player 加入了房间 $room" }
         }
 
         //当玩家删除
@@ -235,13 +249,13 @@ data class ConeRoom(
                 coneErrD(player, "你没有房间")
                 return
             }
-            delete(room.id)
+            deleteById(room.id)
             player.sendPacket(OkDataS2CPacket())
         }
 
         //当玩家读取
         fun onRetrieve(player: ConePlayer, rid: Int) {
-            retrieve(rid)?.also { player.sendPacket(it) } ?: run {
+            selectById(rid)?.also { player.sendPacket(it) } ?: run {
                 coneErrD(player, "找不到房间$rid")
             }
         }

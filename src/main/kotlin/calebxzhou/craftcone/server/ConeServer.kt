@@ -9,8 +9,6 @@ import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.nio.NioDatagramChannel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 
 
 /**
@@ -20,7 +18,7 @@ object ConeServer {
 
     lateinit var channelFuture: ChannelFuture
 
-    private val workerGroup: EventLoopGroup = NioEventLoopGroup()
+    private val workerGroup: EventLoopGroup = NioEventLoopGroup(Runtime.getRuntime().availableProcessors())
     @JvmStatic
     fun start(port: Int){
         logger.info { "在$port 端口启动服务器" }
@@ -47,4 +45,3 @@ object ConeServer {
         }
     }
 }
-val logicScope = CoroutineScope(Dispatchers.IO)
