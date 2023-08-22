@@ -16,10 +16,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 val logger = KotlinLogging.logger {}
 fun main(args: Array<String>) {
-    HikariConfig().apply {
-        jdbcUrl = "jdbc:postgresql://sy6.calebxzhou.cn:5432/mc"
-        username = "calebxzhou"
-        password = "rdi"
+    HikariConfig().apply 
         maximumPoolSize = 32768
         minimumIdle = 32
         isAutoCommit = true
