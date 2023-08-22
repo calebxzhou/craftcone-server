@@ -15,9 +15,7 @@ data class RegisterC2SPacket(
     val pwd : String,
 ): Packet, BeforeLoginProcessable {
     companion object : BufferReadable<RegisterC2SPacket> {
-        override fun read(buf: FriendlyByteBuf): RegisterC2SPacket {
-            return RegisterC2SPacket( buf.readUtf(),buf.readUtf())
-        }
+        override fun read(buf: FriendlyByteBuf) = RegisterC2SPacket( buf.readUtf(),buf.readUtf())
 
     }
 

@@ -12,9 +12,7 @@ import calebxzhou.craftcone.server.entity.ConeRoom
  */
 class DelRoomC2SPacket : Packet,AfterLoginProcessable{
     companion object : BufferReadable<DelRoomC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): DelRoomC2SPacket {
-            return DelRoomC2SPacket()
-        }
+        override fun read(buf: FriendlyByteBuf) = DelRoomC2SPacket()
     }
     override fun process(player: ConePlayer) {
         ConeRoom.onDelete(player)
