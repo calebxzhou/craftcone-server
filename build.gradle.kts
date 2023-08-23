@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     kotlin("plugin.serialization") version "1.9.0"
     application
 }
@@ -30,8 +31,13 @@ dependencies {
     implementation("org.postgresql:postgresql:42.6.0")
     // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
     implementation("org.mariadb.jdbc:mariadb-java-client:3.1.4")
+// https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc10
+    implementation("com.oracle.database.jdbc:ojdbc10:19.20.0.0")
+    // https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc
+    implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.0.jre11")
+// https://mvnrepository.com/artifact/com.h2database/h2
+    implementation("com.h2database:h2:2.2.220")
 
-    implementation("net.benwoodworth.knbt:knbt:0.11.3")
     // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
     implementation("com.zaxxer:HikariCP:5.0.1")
 
@@ -46,5 +52,5 @@ kotlin {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("calebxzhou.craftcone.server.AppKt")
 }

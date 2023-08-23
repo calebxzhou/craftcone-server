@@ -5,7 +5,6 @@ import io.netty.buffer.ByteBufAllocator
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import io.netty.util.ByteProcessor
-import net.benwoodworth.knbt.Nbt
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -54,15 +53,7 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
     fun readUUID(): UUID  {
         return UUID(readLong(), readLong())
     }
-    fun readNbt(){
 
-    }
-    fun writeNbt(nbt : Nbt?) : FriendlyByteBuf{
-    /*    nbt?.let {
-            writeBytes(it.encodeToByteArray())
-        }*/
-        return this
-    }
 
     fun readUtf(): String  {
         return this.readUtf(32767)
