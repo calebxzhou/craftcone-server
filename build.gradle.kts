@@ -23,10 +23,14 @@ dependencies {
     implementation ("org.jetbrains.exposed:exposed-core:0.42.0")
     implementation ("org.jetbrains.exposed:exposed-dao:0.42.0")
     implementation ("org.jetbrains.exposed:exposed-jdbc:0.42.0")
+
 // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
 // https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation("org.postgresql:postgresql:42.6.0")
+    // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.4")
+
     implementation("net.benwoodworth.knbt:knbt:0.11.3")
     // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
     implementation("com.zaxxer:HikariCP:5.0.1")
