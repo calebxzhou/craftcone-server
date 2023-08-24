@@ -13,14 +13,16 @@ import io.netty.channel.socket.DatagramPacket
 object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
+        val clientAddr = msg.sender()
         try {
-            val clientAddr = msg.sender()
             //第一个byte
             val packetId = msg.content().readByte().toInt()
             val data = FriendlyByteBuf(msg.content())
             ConePacketSet.createAndProcess(clientAddr,packetId,data)
         } catch (e: Exception) {
-            logger.error { "读取数据出现错误 $e" }
+            logger.error { "读取数据出现错误" }
+            e.printStackTrace()
+            coneErrD(clientAddr, "读取数据出现错误 $e")
         }
     }
 

@@ -48,9 +48,7 @@ data class ConePlayer(
         private val addrToPlayer = hashMapOf<InetSocketAddress, ConePlayer>()
 
         //用户名是否存在
-        fun exists(name: String): Boolean {
-            return !PlayerInfoTable.select { PlayerInfoTable.name eq name }.empty()
-        }
+        fun exists(name: String): Boolean = transaction {  !PlayerInfoTable.select { PlayerInfoTable.name eq name }.empty()}
 
         //注册
         fun register(pwd: String, pName: String, clientAddress: InetSocketAddress) {

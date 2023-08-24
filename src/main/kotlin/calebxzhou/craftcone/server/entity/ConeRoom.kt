@@ -274,9 +274,8 @@ data class ConeRoom(
 
 
         //玩家已创建的房间
-        fun getPlayerOwnRoom(pid: Int): ConeRoom? {
-            return RoomInfoRow.find { RoomInfoTable.ownerId eq pid }.firstOrNull()?.let { ofRow(it) }
-        }
+        fun getPlayerOwnRoom(pid: Int): ConeRoom? = transaction {
+            RoomInfoRow.find { RoomInfoTable.ownerId eq pid }.firstOrNull()?.let { ofRow(it) }}
 
 
 
