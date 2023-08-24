@@ -41,7 +41,6 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.0.1")
 // https://mvnrepository.com/artifact/com.akuleshov7/ktoml-core
     implementation("com.akuleshov7:ktoml-core:0.5.0")
-    implementation("com.akuleshov7:ktoml-file:0.5.0")
     implementation(kotlin("stdlib-jdk8"))
 }
 tasks.test {
