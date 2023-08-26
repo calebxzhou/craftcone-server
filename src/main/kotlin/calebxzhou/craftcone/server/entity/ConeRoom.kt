@@ -3,6 +3,7 @@ package calebxzhou.craftcone.server.entity
 import calebxzhou.craftcone.net.ConeNetSender
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.coneErrD
+import calebxzhou.craftcone.net.coneInfoT
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
@@ -78,7 +79,7 @@ data class ConeRoom(
                 val bpos = ConeBlockPos(it[BlockStateTable.blockPos])
                 val tag = it[BlockStateTable.tag]
                 tag?.isNotBlank()?.let { bl ->
-                    if(bl){
+                    if (bl) {
                         logger.info { "读取方块${bpos} ${bpos.chunkPos.x} ${bpos.chunkPos.z}（$bsid $tag）" }
                     }
                 }
@@ -178,14 +179,16 @@ data class ConeRoom(
                 }.id.value
             }
         }
+
         //删除房间（数据库操作）
-        private fun deleteById(rid: Int){
+        private fun deleteById(rid: Int) {
             transaction {
                 RoomSavedChunksTable.deleteWhere { roomId eq rid }
                 BlockStateTable.deleteWhere { roomId eq rid }
                 RoomInfoTable.deleteWhere { RoomInfoTable.id eq rid }
             }
         }
+
         //读取房间数据（数据库操作） ，不存在则null
         fun selectById(rid: Int): ConeRoom? {
             return transaction {
@@ -266,17 +269,19 @@ data class ConeRoom(
                 it.onlinePlayers -= player.id
                 pidToPlayingRoom -= player.id
                 it.broadcastPacket(PlayerLeftRoomS2CPacket(player.id), player)
+                coneInfoT(player.addr, "已退出房间 ${it.name}")
             } ?: let {
-                logger.warn { "$player 没有加入任何房间就请求离开了" }
-                return
+                logger.warn {
+                    "$player 没有加入任何房间就请求离开了"
+                }
             }
         }
 
 
         //玩家已创建的房间
         fun getPlayerOwnRoom(pid: Int): ConeRoom? = transaction {
-            RoomInfoRow.find { RoomInfoTable.ownerId eq pid }.firstOrNull()?.let { ofRow(it) }}
-
+            RoomInfoRow.find { RoomInfoTable.ownerId eq pid }.firstOrNull()?.let { ofRow(it) }
+        }
 
 
     }

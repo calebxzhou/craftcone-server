@@ -83,6 +83,10 @@ data class ConePlayer(
 
         //登录
         fun login(pid: Int, pwd: String, addr: InetSocketAddress) {
+            /*if(onlinePlayers.containsKey(pid)){
+                coneErrD(addr,"已经在线了")
+                return
+            }*/
             read(pid)?.apply{
                 if(this.pwd != pwd){
                     return@apply

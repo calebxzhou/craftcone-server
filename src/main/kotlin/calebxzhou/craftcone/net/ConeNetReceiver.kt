@@ -4,15 +4,16 @@ import calebxzhou.craftcone.server.logger
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 
 /**
  * Created  on 2023-07-03,9:14.
  */
 object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
-
-    override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) {
+    private val recvScope = CoroutineScope(Dispatchers.IO)
+    override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) = recvScope.run{
         val clientAddr = msg.sender()
         try {
             //第一个byte
@@ -37,6 +38,4 @@ object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
     override fun channelReadComplete(ctx: ChannelHandlerContext) {
         ctx.flush()
     }
-
-
 }
