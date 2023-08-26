@@ -78,12 +78,6 @@ data class ConeRoom(
                 val bsid = it[BlockStateTable.blockStateId]
                 val bpos = ConeBlockPos(it[BlockStateTable.blockPos])
                 val tag = it[BlockStateTable.tag]
-                tag?.isNotBlank()?.let { bl ->
-                    if (bl) {
-                        logger.info { "读取方块${bpos} ${bpos.chunkPos.x} ${bpos.chunkPos.z}（$bsid $tag）" }
-                    }
-                }
-
                 doForEachBlock(bpos, bsid, tag)
             }
         }
@@ -247,13 +241,12 @@ data class ConeRoom(
         }
 
         //当玩家删除
-        fun onDelete(player: ConePlayer) {
-            val room = getPlayerOwnRoom(player.id) ?: let {
-                coneErrD(player, "你没有房间")
-                return
-            }
-            deleteById(room.id)
-            player.sendPacket(OkDataS2CPacket())
+        fun onDelete(player: ConePlayer) = getPlayerOwnRoom(player.id) ?.run {
+            deleteById(id)
+            coneInfoT(player.addr,"成功删除房间")
+        }?: let {
+            coneErrD(player, "你没有房间")
+            return
         }
 
         //当玩家读取

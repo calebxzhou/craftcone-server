@@ -35,11 +35,13 @@ fun main(args: Array<String>) {
     DriverManager.registerDriver(OracleDriver())
     logger.info { "读取配置文件中 $CONF_FILE_NAME" }
     loadConfig().run {
-        HikariConfig().apply {
+        HikariConfig().run {
             username = db.usr
             password = db.pwd
             jdbcUrl = db.url
-        }.run {
+            minimumIdle = db.minConn
+            maximumPoolSize = db.maxConn
+            maxLifetime = db.connLife
             Database.connect(HikariDataSource(this))
         }
         createTables()
