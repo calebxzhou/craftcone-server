@@ -5,8 +5,8 @@ plugins {
     application
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = "calebxzhou.craftcone.server"
+version = "0.0.3"
 
 repositories {
     mavenCentral()

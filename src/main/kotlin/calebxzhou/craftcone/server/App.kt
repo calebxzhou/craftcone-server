@@ -24,6 +24,7 @@ import kotlin.io.path.exists
 
 
 val logger = KotlinLogging.logger {}
+const val VERSION_NUM = 3
 const val CONF_FILE_NAME = "conf.toml"
 
 fun main(args: Array<String>) {
