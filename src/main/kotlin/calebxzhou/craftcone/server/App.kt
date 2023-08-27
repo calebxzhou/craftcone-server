@@ -1,24 +1,14 @@
 package calebxzhou.craftcone.server
 
-import calebxzhou.craftcone.server.table.BlockStateTable
-import calebxzhou.craftcone.server.table.PlayerInfoTable
-import calebxzhou.craftcone.server.table.RoomInfoTable
-import calebxzhou.craftcone.server.table.RoomSavedChunksTable
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 import com.akuleshov7.ktoml.Toml
-import com.microsoft.sqlserver.jdbc.SQLServerDriver
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
+import com.mongodb.kotlin.client.coroutine.MongoClient
+import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
-import oracle.jdbc.OracleDriver
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Slf4jSqlDebugLogger
-import org.jetbrains.exposed.sql.addLogger
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
-import java.sql.DriverManager
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 
@@ -27,15 +17,17 @@ val logger = KotlinLogging.logger {}
 const val VERSION_NUM = 3
 const val CONF_FILE_NAME = "conf.toml"
 
-fun main(args: Array<String>) {
-    DriverManager.registerDriver(org.postgresql.Driver())
-    DriverManager.registerDriver(org.mariadb.jdbc.Driver())
-    DriverManager.registerDriver(org.sqlite.JDBC())
-    DriverManager.registerDriver(org.h2.Driver())
-    DriverManager.registerDriver(SQLServerDriver())
-    DriverManager.registerDriver(OracleDriver())
+suspend fun main(args: Array<String>) {
     logger.info { "读取配置文件中 $CONF_FILE_NAME" }
     loadConfig().run {
+        val mongoClient = MongoClient.create(db.url)
+        val database = mongoClient.getDatabase(db.dbName)
+        initDb(database)
+        val playersCollection = database.getCollection<ConePlayer>(ConePlayer.collectionName)
+        val roomsCollection = database.getCollection<ConeRoom>(ConeRoom.collectionName)
+        ConeServer.start(port,)
+    }
+    /*loadConfig().run {
         HikariConfig().run {
             username = db.usr
             password = db.pwd
@@ -47,14 +39,14 @@ fun main(args: Array<String>) {
         }
         createTables()
         ConeServer.start(port)
-    }
+    }*/
 
 }
 
-fun createTables() = transaction {
-    addLogger(Slf4jSqlDebugLogger)
+suspend fun initDb(db: MongoDatabase) {
     logger.info { "初始化数据结构" }
-    SchemaUtils.create(PlayerInfoTable, RoomInfoTable, BlockStateTable, RoomSavedChunksTable)
+    db.createCollection(ConePlayer.collectionName)
+    db.createCollection(ConeRoom.collectionName)
 }
 
 fun loadConfig() = Path(CONF_FILE_NAME).run {

@@ -41,6 +41,7 @@ data class ConePlayer(
 
 
     companion object {
+        const val collectionName = "players"
         //全部在线玩家
         private val onlinePlayers = hashMapOf<Int, ConePlayer>()
 

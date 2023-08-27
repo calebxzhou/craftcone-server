@@ -31,12 +31,10 @@ data class ConeRoom(
     val id: Int,
     //房间名
     val name: String,
-    //房主id
-    val ownerId: Int,
+    //房主
+    val owner: ConePlayer,
     //mc版本
     val mcVersion: String,
-    //mod加载器？Fabric：Forge
-    val isFabric: Boolean,
     //创造
     val isCreative: Boolean,
     //方块状态数量
@@ -45,25 +43,23 @@ data class ConeRoom(
     val seed: Long,
     //创建时间
     val createTime: Long,
-    //保存区块
-    val savedChunks: MutableList<ConeChunkPos>,
+    //方块列表
+    val blocks: MutableList<ConeBlockData> = arrayListOf()
 ) : Packet, BufferWritable {
 
     //写入到ByteBuf
     override fun write(buf: FriendlyByteBuf) {
         buf.writeVarInt(id)
         buf.writeUtf(name)
-        buf.writeVarInt(ownerId)
         buf.writeUtf(mcVersion)
-        buf.writeBoolean(isFabric)
         buf.writeBoolean(isCreative)
         buf.writeVarInt(blockStateAmount)
         buf.writeLong(seed)
         buf.writeLong(createTime)
-        buf.writeVarIntArray(savedChunks.map { it.asInt }.toIntArray())
     }
 
     //房间在线玩家list
+    @Transient
     val onlinePlayers = hashMapOf<Int, ConePlayer>()
 
 
@@ -121,7 +117,7 @@ data class ConeRoom(
     }
 
     companion object {
-
+        const val collectionName = "rooms"
         //全部运行中的房间 (rid to room)
         private val ridToRoom: MutableMap<Int, ConeRoom> = hashMapOf()
 
@@ -141,7 +137,6 @@ data class ConeRoom(
                     row.blockStateAmount,
                     row.seed,
                     row.createTime,
-                    arrayListOf()
                 )
                 /*RoomSavedChunksTable
                     .select { RoomSavedChunksTable.roomId eq row.id.value }
@@ -214,7 +209,6 @@ data class ConeRoom(
                 blockStateAmount,
                 Random.nextLong(),
                 System.currentTimeMillis(),
-                arrayListOf()
             )
             val rid = insert(room)
             player.sendPacket(OkDataS2CPacket { it.writeVarInt(rid) })
