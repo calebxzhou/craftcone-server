@@ -6,7 +6,6 @@ import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
-import calebxzhou.craftcone.server.logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,11 +23,11 @@ object ConePacketProcessor {
                 packet.process(clientAddr)
             }
 
-            is AfterLoginProcessable -> ConePlayer.getByAddr(clientAddr)?.run {
+            is AfterLoginProcessable -> ConePlayer.getOnlineByAddr(clientAddr)?.run {
                 packet.process(this)
             }
 
-            is InRoomProcessable -> ConePlayer.getByAddr(clientAddr)?.run {
+            is InRoomProcessable -> ConePlayer.getOnlineByAddr(clientAddr)?.run {
                 ConeRoom.getPlayerPlayingRoom(id)?.let {
                     packet.process(this,it)
                 }

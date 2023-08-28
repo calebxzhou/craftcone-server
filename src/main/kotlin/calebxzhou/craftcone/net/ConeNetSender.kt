@@ -42,6 +42,9 @@ object ConeNetSender {
     fun sendPacket(packet: BufferWritable, clientAddress: InetSocketAddress) {
         sendPacket(clientAddress,packet)
     }
+    fun ConePlayer.sendPacket(packet: BufferWritable) {
+        sendPacket(packet, this)
+    }
 }
 //客户端错误弹框
 fun coneErrD(player: ConePlayer,msg:String){

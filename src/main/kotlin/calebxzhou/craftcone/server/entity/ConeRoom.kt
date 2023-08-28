@@ -29,7 +29,6 @@ data class ConeRoom(
     val createTime: Long,
     val blockData: MutableList<ConeBlockData> = arrayListOf()
 ) : Packet, BufferWritable {
-    val dbcl = DB.getCollection<ConeRoom>(collectionName)
 
     //写入到ByteBuf
     override fun write(buf: FriendlyByteBuf) {
@@ -101,7 +100,8 @@ data class ConeRoom(
     }
 
     companion object {
-        const val collectionName = "rooms"
+        private const val collectionName = "rooms"
+        private val dbcl = DB.getCollection<ConeRoom>(collectionName)
         //全部运行中的房间 (rid to room)
         private val ridToRoom: MutableMap<Int, ConeRoom> = hashMapOf()
 

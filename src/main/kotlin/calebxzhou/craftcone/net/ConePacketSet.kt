@@ -2,7 +2,8 @@ package calebxzhou.craftcone.net
 
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.net.protocol.account.LoginC2SPacket
+import calebxzhou.craftcone.net.protocol.account.LoginByNameC2SPacket
+import calebxzhou.craftcone.net.protocol.account.LoginByUidC2SPacket
 import calebxzhou.craftcone.net.protocol.account.RegisterC2SPacket
 import calebxzhou.craftcone.net.protocol.game.*
 import calebxzhou.craftcone.net.protocol.general.DisconnectS2CPacket
@@ -38,7 +39,8 @@ object ConePacketSet {
         registerPacket(OkDataS2CPacket::class.java)
         registerPacket(SysMsgS2CPacket::class.java)
 
-        registerPacket(LoginC2SPacket::read)
+        registerPacket(LoginByUidC2SPacket::read)
+        registerPacket(LoginByNameC2SPacket::read)
         registerPacket(RegisterC2SPacket::read)
 
         registerPacket(BlockDataC2CPacket::class.java)

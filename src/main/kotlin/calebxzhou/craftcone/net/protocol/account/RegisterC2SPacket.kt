@@ -13,14 +13,14 @@ import java.net.InetSocketAddress
 data class RegisterC2SPacket(
     val pName:String,
     val pwd : String,
+    val email:String,
 ): Packet, BeforeLoginProcessable {
     companion object : BufferReadable<RegisterC2SPacket> {
-        override fun read(buf: FriendlyByteBuf) = RegisterC2SPacket( buf.readUtf(),buf.readUtf())
+        override fun read(buf: FriendlyByteBuf) = RegisterC2SPacket( buf.readUtf(),buf.readUtf(),buf.readUtf())
 
     }
 
-    override suspend fun process(clientAddress: InetSocketAddress) {
-        ConePlayer.register(pwd,pName,clientAddress)
-    }
+    override suspend fun process(clientAddress: InetSocketAddress) = ConePlayer.register(clientAddress,this)
+
 
 }
