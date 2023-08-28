@@ -1,8 +1,11 @@
 package calebxzhou.craftcone.server.entity
 
+import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.coneErrD
 import calebxzhou.craftcone.net.coneInfoT
 import calebxzhou.craftcone.net.coneSenP
+import calebxzhou.craftcone.net.protocol.BufferWritable
+import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.account.LoginByNameC2SPacket
 import calebxzhou.craftcone.net.protocol.account.LoginByUidC2SPacket
 import calebxzhou.craftcone.net.protocol.account.RegisterC2SPacket
@@ -29,7 +32,18 @@ data class ConePlayer(
     val createTime: Long,
     //当前登录ip地址
     var addr: InetSocketAddress = InetSocketAddress(0)
-) {
+) : Packet, BufferWritable {
+    override fun write(buf: FriendlyByteBuf) {
+        buf.writeUtf(id.toHexString())
+        buf.writeUtf(name)
+        //密码有几位就有几个*
+        buf.writeUtf((1..pwd.length).joinToString("") { "*" })
+        buf.writeUtf(email)
+        buf.writeLong(createTime)
+        buf.writeUtf(addr.hostString)
+
+    }
+
     override fun toString(): String {
         return "$name($id)"
     }

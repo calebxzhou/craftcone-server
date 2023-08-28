@@ -6,6 +6,7 @@ import calebxzhou.craftcone.net.protocol.MsgType
 import calebxzhou.craftcone.net.protocol.general.SysMsgS2CPacket
 import calebxzhou.craftcone.server.ConeServer
 import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.channel.socket.DatagramPacket
@@ -34,16 +35,15 @@ object ConeNetSender {
             ConeServer.channelFuture.channel().writeAndFlush(udpPacket)
         }
 
-    @JvmStatic
-    fun sendPacket(packet: BufferWritable, player: ConePlayer){
-        sendPacket(packet, player.addr)
-    }
-    @JvmStatic
-    fun sendPacket(packet: BufferWritable, clientAddress: InetSocketAddress) {
-        sendPacket(clientAddress,packet)
-    }
     fun ConePlayer.sendPacket(packet: BufferWritable) {
-        sendPacket(packet, this)
+        sendPacket( this.addr,packet)
+    }
+    fun ConeRoom.sendPacketToAll(sender:ConePlayer,packet: BufferWritable){
+        onlinePlayers.forEach {
+            if (sender.addr != it.value.addr) {
+                sendPacket(it.value.addr,packet)
+            }
+        }
     }
 }
 //客户端错误弹框
@@ -51,7 +51,7 @@ fun coneErrD(player: ConePlayer,msg:String){
     coneErrD(player.addr,msg)
 }
 fun coneErrD(clientAddress: InetSocketAddress,msg:String){
-    ConeNetSender.sendPacket(SysMsgS2CPacket(MsgType.Dialog,MsgLevel.Err,msg),clientAddress)
+    ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Dialog,MsgLevel.Err,msg))
 }
 //客户端消息弹框
 fun coneInfoT(clientAddress: InetSocketAddress,msg: String){

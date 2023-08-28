@@ -12,14 +12,21 @@ import calebxzhou.craftcone.net.protocol.game.PlayerLeftRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.DB
 import calebxzhou.craftcone.server.logger
+import com.mongodb.client.model.Aggregates.*
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Filters.and
+import com.mongodb.client.model.Filters.eq
+import com.mongodb.client.model.Updates
+import kotlinx.coroutines.flow.forEach
 import org.bson.codecs.pojo.annotations.BsonId
+import org.bson.types.ObjectId
 import kotlin.random.Random
 
 /**
  * Created  on 2023-08-03,13:20.
  */
 data class ConeRoom(
-    @BsonId val id: Int,
+    @BsonId val id: ObjectId,
     val name: String,
     val owner: ConePlayer,
     val mcVer: String,
@@ -27,12 +34,13 @@ data class ConeRoom(
     val blockStateAmount: Int,
     val seed: Long,
     val createTime: Long,
-    val blockData: MutableList<ConeBlockData> = arrayListOf()
+    val dimensions: List<ConeDimension> = arrayListOf()
 ) : Packet, BufferWritable {
-
-    //写入到ByteBuf
+    //dimension id to saved blocks
+    @Transient
+    val onlinePlayers = hashMapOf<Int, ConePlayer>()
     override fun write(buf: FriendlyByteBuf) {
-        buf.writeVarInt(id)
+        buf.writeUtf(id.toHexString())
         buf.writeUtf(name)
         buf.writeUtf(mcVer)
         buf.writeBoolean(isCreative)
@@ -41,63 +49,49 @@ data class ConeRoom(
         buf.writeLong(createTime)
     }
 
-    //房间在线玩家list
-    @Transient
-    val onlinePlayers = hashMapOf<Int, ConePlayer>()
+    override fun toString(): String {
+        return "$name($id)"
+    }
 
 
     //读方块并执行操作
-    fun readBlock(dimId: Int, chunkPosi: Int, doForEachBlock: (ConeBlockPos, Int, String?) -> Unit) {
-        transaction {
-            BlockStateTable.select {
-                (BlockStateTable.chunkPos eq chunkPosi)
-                    .and(BlockStateTable.roomId eq this@ConeRoom.id)
-                    .and(BlockStateTable.dimId eq dimId)
-            }.forEach {
-                val bsid = it[BlockStateTable.blockStateId]
-                val bpos = ConeBlockPos(it[BlockStateTable.blockPos])
-                val tag = it[BlockStateTable.tag]
-                doForEachBlock(bpos, bsid, tag)
-            }
-        }
+    suspend fun readBlock(dimId: Int, chunkPos: ConeChunkPos, doForEachBlock: (ConeBlockData) -> Unit) {
+        dbcl.aggregate<ConeBlockData>(
+                listOf(
+                    match(
+                        and(
+                            eq("_id", id),
+                            eq("dimensions.dimId", dimId),
+                            eq("dimensions.blockData.chunkPos", chunkPos)
+                        )
+                    ),
+                    unwind("\$dimensions"),
+                    match(eq("dimensions.dimId", dimId)),
+                    unwind("\$dimensions.blockData"),
+                    replaceRoot("\$dimensions.blockData")
+                )
+            ).collect { doForEachBlock(it) }
 
     }
 
     //写方块
-    fun writeBlock(packet: BlockDataC2CPacket) {
-        transaction {
-            BlockStateTable.upsert(BlockStateTable.roomId, BlockStateTable.dimId, BlockStateTable.blockPos) {
-                it[roomId] = this@ConeRoom.id
-                it[dimId] = packet.dimId
-                it[blockPos] = packet.bpos.asLong
-                it[chunkPos] = packet.bpos.chunkPos.asInt
-                it[blockStateId] = packet.stateId
-                it[tag] = packet.tag
-            }
+    suspend fun writeBlock(packet: BlockDataC2CPacket) = packet.run {
+        ConeBlockData(
+            bpos,
+            bpos.chunkPos,
+            stateId,
+            tag
+        ).run {
+            dbcl.updateOne(
+                eq("dimensions.dimId", dimId),
+                Updates.push("dimensions.$.blockData",this)
+            )
         }
     }
 
 
-    //广播数据包（除了自己）
-    fun broadcastPacket(packet: BufferWritable, sender: ConePlayer) {
-        onlinePlayers.forEach {
-            if (sender.addr != it.value.addr) {
-                ConeNetSender.sendPacket(packet, it.value.addr)
-            }
-        }
-    }
 
 
-    /*fun readBlockStateId(dimId: Int, bpos: BlockPos): Int {
-        return try {
-            Files.readString(profilePath.resolve(getStateIdPath(dimId, bpos))).toInt()
-        } catch (e: NoSuchFileException) {
-            0
-        }
-    }*/
-    override fun toString(): String {
-        return "$name($id)"
-    }
 
     companion object {
         const val collectionName = "rooms"

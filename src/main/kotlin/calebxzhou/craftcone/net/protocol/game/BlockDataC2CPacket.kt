@@ -1,5 +1,6 @@
 package calebxzhou.craftcone.net.protocol.game
 
+import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
 import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.BufferWritable
@@ -43,7 +44,7 @@ data class BlockDataC2CPacket(
     }
 
     override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
-        playingRoom.broadcastPacket(this,player)
+        playingRoom.sendPacketToAll(player,this)
         playingRoom.writeBlock(this)
     }
 

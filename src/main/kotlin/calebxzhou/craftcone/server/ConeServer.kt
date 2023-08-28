@@ -1,8 +1,9 @@
 package calebxzhou.craftcone.server
 
 import calebxzhou.craftcone.net.ConeNetReceiver
-import calebxzhou.craftcone.server.entity.ConePlayer
-import calebxzhou.craftcone.server.entity.ConeRoom
+import calebxzhou.craftcone.server.entity.*
+import com.mongodb.client.model.IndexOptions
+import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.ChannelFuture
@@ -27,10 +28,53 @@ val CONF = ConeServerConfig.loadConfig()
 val PORT = CONF.port
 val DB = CONF.run {
     runBlocking {
-        MongoClient.create(db.url).getDatabase(db.dbName).also {
+        MongoClient.create(db.url).getDatabase(db.dbName).also { mdb ->
             logger.info { "Init Database" }
-            it.createCollection(ConePlayer.collectionName)
-            it.createCollection(ConeRoom.collectionName)
+            ConePlayer.collectionName.run {
+                mdb.createCollection(this)
+                mdb.getCollection<ConePlayer>(this).apply {
+                    //player name index
+                    createIndex(
+                        Indexes.hashed(ConePlayer::name.name),
+                        IndexOptions().unique(true)
+                    )
+                }
+            }
+            ConeRoom.collectionName.run {
+                mdb.createCollection(this)
+                mdb.getCollection<ConeRoom>(ConeRoom.collectionName).apply {
+                    //chunk pos index
+                    createIndex(
+                        Indexes.compoundIndex(
+                            Indexes.hashed(
+                                ConeRoom::dimensions.name
+                                        + "."
+                                        + ConeDimension::dimId.name
+                            ),
+                            Indexes.hashed(
+                                ConeRoom::dimensions.name
+                                        + "."
+                                        + ConeDimension::blockData.name
+                                        + "."
+                                        + ConeBlockData::chunkPos.name
+                            ),
+                        )
+                    )
+                    //block pos unique
+                    createIndex(
+                        Indexes.hashed(
+                            ConeRoom::dimensions.name
+                                    + "."
+                                    + ConeDimension::blockData.name
+                                    + "."
+                                    + ConeBlockPos::asLong.name
+                        ),
+                        IndexOptions().unique(true)
+                    )
+                }
+            }
+
+
         }
     }
 }
@@ -47,7 +91,7 @@ object ConeServer {
             val b = Bootstrap()
                 .group(workerGroup)
                 .channel(NioDatagramChannel::class.java)
-                .option(ChannelOption.SO_BROADCAST,true)
+                .option(ChannelOption.SO_BROADCAST, true)
                 .handler(object : ChannelInitializer<DatagramChannel>() {
                     override fun initChannel(ch: DatagramChannel) {
                         ch.pipeline()
@@ -63,6 +107,7 @@ object ConeServer {
 
     }
 }
+
 suspend fun main(args: Array<String>) {
     ConeServer
 }
