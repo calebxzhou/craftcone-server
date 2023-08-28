@@ -1,6 +1,12 @@
 package calebxzhou.craftcone.server
 
+import com.akuleshov7.ktoml.*
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import java.nio.file.Files
+import kotlin.io.path.Path
+import kotlin.io.path.exists
 
 /**
  * Created  on 2023-08-24,9:09.
@@ -12,11 +18,44 @@ data class ConeServerConfig(
     val info:Info
 ){
     companion object{
-
-        val default = ConeServerConfig(19198,
+        private const val CONF_FILE_NAME = "conf.toml"
+        private val DEFAULT_CONF = ConeServerConfig(19198,
             Db("mongodb://127.0.0.1:27017/","craftcone")
             ,Info(500,"CraftCone Server","Default Description","")
         )
+        private val toml = Toml(
+            inputConfig = TomlInputConfig(
+                ignoreUnknownNames = true,
+                allowEmptyValues = false,
+                allowNullValues = false,
+                allowEscapedQuotesInLiteralStrings = true,
+                allowEmptyToml = false,
+            ),
+            outputConfig = TomlOutputConfig(
+                indentation = TomlIndentation.TWO_SPACES
+            )
+        )
+        fun loadConfig() = Path(CONF_FILE_NAME).run {
+            if (!exists()) {
+                logger.info { "Can't find config file, default config will be used" }
+                DEFAULT_CONF.let {
+                    saveConfig(it)
+                    return@run it
+                }
+            }else{
+                return@run try { toml.decodeFromString<ConeServerConfig>(Files.readString(this))
+                }catch (e : Exception){
+                    logger.error{ "Can't resolve config file" }
+                    throw e
+                }
+            }
+
+        }
+
+        fun saveConfig(config: ConeServerConfig) = toml.encodeToString(config).run {
+            Files.writeString(Path(CONF_FILE_NAME), this)
+        }
+
     }
 
     @Serializable
