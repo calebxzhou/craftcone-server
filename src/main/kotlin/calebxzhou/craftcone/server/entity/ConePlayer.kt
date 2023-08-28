@@ -7,8 +7,6 @@ import calebxzhou.craftcone.net.coneSenP
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
-import calebxzhou.craftcone.server.table.PlayerInfoRow
-import calebxzhou.craftcone.server.table.PlayerInfoTable
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.InetSocketAddress
