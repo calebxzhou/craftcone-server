@@ -1,6 +1,9 @@
 package calebxzhou.craftcone.server
 
-import com.akuleshov7.ktoml.*
+import com.akuleshov7.ktoml.Toml
+import com.akuleshov7.ktoml.TomlIndentation
+import com.akuleshov7.ktoml.TomlInputConfig
+import com.akuleshov7.ktoml.TomlOutputConfig
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -20,8 +23,8 @@ data class ConeServerConfig(
     companion object{
         private const val CONF_FILE_NAME = "conf.toml"
         private val DEFAULT_CONF = ConeServerConfig(19198,
-            Db("mongodb://127.0.0.1:27017/","craftcone")
-            ,Info(500,"CraftCone Server","Default Description","")
+            Db("mongodb://127.0.0.1:27017/","craftcone"),
+            Info(500,"CraftCone Server","Default Description","")
         )
         private val toml = Toml(
             inputConfig = TomlInputConfig(
@@ -65,7 +68,7 @@ data class ConeServerConfig(
     )
     @Serializable
     data class Info(
-        val maxPlayerAmountLimit:Int,
+        val maxPlayerLimit:Int,
         val serverName:String,
         val serverDescription:String,
         val serverIconBase64:String,

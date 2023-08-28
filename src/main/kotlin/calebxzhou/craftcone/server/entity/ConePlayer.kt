@@ -35,7 +35,7 @@ data class ConePlayer(
     }
 
     companion object {
-        private const val collectionName = "players"
+        const val collectionName = "players"
         private val dbcl = DB.getCollection<ConePlayer>(collectionName)
 
         //全部在线玩家
@@ -46,6 +46,8 @@ data class ConePlayer(
 
         //根据ip地址获取在线玩家
         fun getOnlineByAddr(addr: InetSocketAddress): ConePlayer? = addrToPlayer[addr]
+        val onlinePlayerCount
+            get() = onlinePlayers.size
 
         //根据昵称获取
         suspend fun getByName(name: String): ConePlayer? = dbcl.find(eq(ConePlayer::name.name, name)).firstOrNull()

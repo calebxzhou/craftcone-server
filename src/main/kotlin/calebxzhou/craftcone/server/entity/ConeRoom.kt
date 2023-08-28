@@ -100,7 +100,7 @@ data class ConeRoom(
     }
 
     companion object {
-        private const val collectionName = "rooms"
+        const val collectionName = "rooms"
         private val dbcl = DB.getCollection<ConeRoom>(collectionName)
         //全部运行中的房间 (rid to room)
         private val ridToRoom: MutableMap<Int, ConeRoom> = hashMapOf()

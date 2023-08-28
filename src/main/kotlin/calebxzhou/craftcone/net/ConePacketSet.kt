@@ -6,9 +6,7 @@ import calebxzhou.craftcone.net.protocol.account.LoginByNameC2SPacket
 import calebxzhou.craftcone.net.protocol.account.LoginByUidC2SPacket
 import calebxzhou.craftcone.net.protocol.account.RegisterC2SPacket
 import calebxzhou.craftcone.net.protocol.game.*
-import calebxzhou.craftcone.net.protocol.general.DisconnectS2CPacket
-import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
-import calebxzhou.craftcone.net.protocol.general.SysMsgS2CPacket
+import calebxzhou.craftcone.net.protocol.general.*
 import calebxzhou.craftcone.net.protocol.room.*
 import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
@@ -23,10 +21,6 @@ object ConePacketSet {
     }
 
 
-
-
-
-
     //包writer/reader种类 [id]
     private val packetTypes = arrayListOf<PacketType>()
     //c2s
@@ -35,8 +29,11 @@ object ConePacketSet {
     private val packetWriterClassIds = linkedMapOf<Class<out BufferWritable>,Int>()
     init {
         registerPacket(ConeRoom::class.java)
+
         registerPacket(DisconnectS2CPacket::class.java)
+        registerPacket(GetServerInfoC2SPacket::read)
         registerPacket(OkDataS2CPacket::class.java)
+        registerPacket(ServerInfoS2CPacket::class.java)
         registerPacket(SysMsgS2CPacket::class.java)
 
         registerPacket(LoginByUidC2SPacket::read)
@@ -72,30 +69,25 @@ object ConePacketSet {
     }
     
     //客户端传入包 服务端这边创建+处理
-    fun createAndProcess(clientAddr: InetSocketAddress, packetId: Int,  data: FriendlyByteBuf){
-        val type = packetTypes.getOrNull(packetId)?:let {
-            logger.error { "找不到ID$packetId 的包" }
-            return
-        }
-        when(type){
-            PacketType.READ ->{
-                val packet = packetIdReaders[packetId] ?.invoke(data)?:let{
-                    logger.error { "找不到ID$packetId 的包" }
-                    return
+    fun createAndProcess(clientAddr: InetSocketAddress, packetId: Int,  data: FriendlyByteBuf)=
+        packetTypes.getOrNull(packetId)?.run {
+            when(this){
+                PacketType.READ ->{
+                    packetIdReaders[packetId] ?.invoke(data)?.run {
+                        ConePacketProcessor.processPacket(clientAddr,this)
+                    }?:run{
+                        logger.error { "找不到ID$packetId 的包" }
+                    }
                 }
-                ConePacketProcessor.processPacket(clientAddr,packet)
+                else -> {
+                    logger.error { "$clientAddr 客户端只能传入c2s包 ID$packetId 不是c2s包" }
+                }
             }
-            else -> {
-                logger.error { "$clientAddr 客户端只能传入c2s包 ID$packetId 不是c2s包" }
-                return
-            }
+        }?:run {
+            logger.error { "找不到ID$packetId 的包" }
         }
 
-    }
-
-    fun getPacketId(packetClass: Class<out BufferWritable>): Int? {
-        return packetWriterClassIds[packetClass]
-    }
+    fun getPacketId(packetClass: Class<out BufferWritable>): Int? = packetWriterClassIds[packetClass]
 
 
 
