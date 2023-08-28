@@ -21,12 +21,7 @@ dependencies {
 // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.4.8")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
-    implementation ("org.jetbrains.exposed:exposed-core:0.42.0")
-    implementation ("org.jetbrains.exposed:exposed-dao:0.42.0")
-    implementation ("org.jetbrains.exposed:exposed-jdbc:0.42.0")
-
     implementation("org.mongodb:mongodb-driver-kotlin-coroutine:4.10.2")
-
 // https://mvnrepository.com/artifact/com.akuleshov7/ktoml-core
     implementation("com.akuleshov7:ktoml-core:0.5.0")
     implementation(kotlin("stdlib-jdk8"))

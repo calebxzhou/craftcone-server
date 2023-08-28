@@ -17,7 +17,7 @@ import java.net.InetSocketAddress
 object ConePacketProcessor {
     private val procScope = CoroutineScope(Dispatchers.Default)
     //服务端处理包
-     fun processPacket(clientAddr: InetSocketAddress, packet: Packet) = ConePacketProcessor.procScope.run{
+     fun processPacket(clientAddr: InetSocketAddress, packet: Packet) = procScope.run{
         when(packet){
             is BeforeLoginProcessable ->{
                 packet.process(clientAddr)

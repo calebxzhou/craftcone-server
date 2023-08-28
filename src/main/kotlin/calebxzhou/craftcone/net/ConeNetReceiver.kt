@@ -11,9 +11,8 @@ import kotlinx.coroutines.Dispatchers
 /**
  * Created  on 2023-07-03,9:14.
  */
-object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
-    private val recvScope = CoroutineScope(Dispatchers.IO)
-    override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket) = recvScope.run{
+class ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
+    override fun channelRead0(ctx: ChannelHandlerContext, msg: DatagramPacket){
         val clientAddr = msg.sender()
         try {
             //第一个byte
@@ -21,16 +20,14 @@ object ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
             val data = FriendlyByteBuf(msg.content())
             ConePacketSet.createAndProcess(clientAddr,packetId,data)
         } catch (e: Exception) {
-            logger.error { "读取数据出现错误" }
-            e.printStackTrace()
-            coneErrD(clientAddr, "读取数据出现错误 $e")
+            exceptionCaught(ctx,e)
         }
     }
 
 
-
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) { // (4)
         // Close the connection when an exception is raised.
+        logger.error { "Network packet channel error:" }
         cause.printStackTrace()
         ctx.close()
     }
