@@ -10,47 +10,32 @@ import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
 import calebxzhou.craftcone.net.protocol.game.PlayerJoinedRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.game.PlayerLeftRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
+import calebxzhou.craftcone.server.DB
 import calebxzhou.craftcone.server.logger
-import calebxzhou.craftcone.server.table.RoomInfoRow
-import calebxzhou.craftcone.server.table.RoomInfoTable
 import org.bson.codecs.pojo.annotations.BsonId
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.upsert
 import kotlin.random.Random
 
 /**
  * Created  on 2023-08-03,13:20.
  */
 data class ConeRoom(
-    //房间ID
     @BsonId val id: Int,
-    //房间名
     val name: String,
-    //房主
     val owner: ConePlayer,
-    //mc版本
-    val mcVersion: String,
-    //创造
+    val mcVer: String,
     val isCreative: Boolean,
-    //方块状态数量
     val blockStateAmount: Int,
-    //地图种子
     val seed: Long,
-    //创建时间
     val createTime: Long,
-    //方块列表
-    val blocks: MutableList<ConeBlockData> = arrayListOf()
+    val blockData: MutableList<ConeBlockData> = arrayListOf()
 ) : Packet, BufferWritable {
+    val dbcl = DB.getCollection<ConeRoom>(collectionName)
 
     //写入到ByteBuf
     override fun write(buf: FriendlyByteBuf) {
         buf.writeVarInt(id)
         buf.writeUtf(name)
-        buf.writeUtf(mcVersion)
+        buf.writeUtf(mcVer)
         buf.writeBoolean(isCreative)
         buf.writeVarInt(blockStateAmount)
         buf.writeLong(seed)
@@ -158,7 +143,7 @@ data class ConeRoom(
                 RoomInfoRow.new {
                     name = room.name
                     ownerId = room.ownerId
-                    mcVersion = room.mcVersion
+                    mcVersion = room.mcVer
                     isFabric = room.isFabric
                     isCreative = room.isCreative
                     blockStateAmount = room.blockStateAmount
