@@ -19,7 +19,7 @@ data class GetRoomC2SPacket(
         }
 
     }
-    override fun process(player: ConePlayer) {
+    override suspend fun process(player: ConePlayer) {
         ConeRoom.onRetrieve(player, rid)
     }
 

@@ -14,7 +14,7 @@ class GetServerInfoC2SPacket : Packet,BeforeLoginProcessable{
         override fun read(buf: FriendlyByteBuf) = GetServerInfoC2SPacket()
     }
 
-    override fun process(clientAddress: InetSocketAddress) {
+    override suspend fun process(clientAddress: InetSocketAddress) {
 
     }
 }

@@ -42,7 +42,7 @@ data class BlockDataC2CPacket(
         buf.writeUtf(tag?:"")
     }
 
-    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+    override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
         playingRoom.broadcastPacket(this,player)
         playingRoom.writeBlock(this)
     }

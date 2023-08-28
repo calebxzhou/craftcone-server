@@ -9,5 +9,5 @@ import calebxzhou.craftcone.server.entity.ConeRoom
 //适用于房间内的数据包
 interface InRoomProcessable {
     //处理数据
-    fun process(player: ConePlayer, playingRoom: ConeRoom)
+    suspend fun process(player: ConePlayer, playingRoom: ConeRoom)
 }

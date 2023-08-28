@@ -9,6 +9,7 @@ import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 
 /**
@@ -17,29 +18,22 @@ import java.net.InetSocketAddress
 object ConePacketProcessor {
     private val procScope = CoroutineScope(Dispatchers.Default)
     //服务端处理包
-     fun processPacket(clientAddr: InetSocketAddress, packet: Packet) = procScope.run{
+    fun processPacket(clientAddr: InetSocketAddress, packet: Packet) = procScope.launch{
         when(packet){
             is BeforeLoginProcessable ->{
                 packet.process(clientAddr)
             }
-            is AfterLoginProcessable ->{
-                val player = ConePlayer.getByAddr(clientAddr) ?: let {
-                    logger.error { "$clientAddr 想要处理包 ${packet.javaClass.simpleName} 但是此人未登录" }
-                    return
-                }
-                packet.process(player)
+
+            is AfterLoginProcessable -> ConePlayer.getByAddr(clientAddr)?.run {
+                packet.process(this)
             }
-            is InRoomProcessable ->{
-                val player = ConePlayer.getByAddr(clientAddr) ?: let {
-                    logger.error { "$clientAddr 想要处理包 ${packet.javaClass.simpleName} 但是此人未登录" }
-                    return
+
+            is InRoomProcessable -> ConePlayer.getByAddr(clientAddr)?.run {
+                ConeRoom.getPlayerPlayingRoom(id)?.let {
+                    packet.process(this,it)
                 }
-                val room = ConeRoom.getPlayerPlayingRoom(player.id) ?: let {
-                    logger.error { "$player 想要处理包 ${packet.javaClass.simpleName} 但是此人未加入任何房间" }
-                    return
-                }
-                packet.process(player,room)
             }
+
         }
     }
 

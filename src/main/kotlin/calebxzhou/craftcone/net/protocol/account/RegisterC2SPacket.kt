@@ -19,7 +19,7 @@ data class RegisterC2SPacket(
 
     }
 
-    override fun process(clientAddress: InetSocketAddress) {
+    override suspend fun process(clientAddress: InetSocketAddress) {
         ConePlayer.register(pwd,pName,clientAddress)
     }
 

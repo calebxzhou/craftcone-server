@@ -8,5 +8,5 @@ import java.net.InetSocketAddress
 //玩家登录前 数据包
 interface BeforeLoginProcessable {
     //处理数据
-    fun process(clientAddress: InetSocketAddress)
+    suspend fun process(clientAddress: InetSocketAddress)
 }

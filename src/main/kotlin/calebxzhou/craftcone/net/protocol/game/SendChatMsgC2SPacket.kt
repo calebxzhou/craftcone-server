@@ -16,7 +16,7 @@ data class SendChatMsgC2SPacket (
         override fun read(buf: FriendlyByteBuf) = SendChatMsgC2SPacket(buf.readUtf())
     }
 
-    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+    override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
         playingRoom.broadcastPacket(SysMsgS2CPacket(MsgType.Chat,MsgLevel.Normal,msg),player)
     }
 

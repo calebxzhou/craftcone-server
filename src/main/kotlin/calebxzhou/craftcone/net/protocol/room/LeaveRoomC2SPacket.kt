@@ -19,7 +19,7 @@ class LeaveRoomC2SPacket : Packet, InRoomProcessable {
         }
     }
 
-    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+    override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
         ConeRoom.onPlayerLeave(player)
     }
 

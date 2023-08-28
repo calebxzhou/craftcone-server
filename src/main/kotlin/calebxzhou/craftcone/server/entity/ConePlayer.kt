@@ -7,6 +7,7 @@ import calebxzhou.craftcone.net.coneSenP
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
+import org.bson.codecs.pojo.annotations.BsonId
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.InetSocketAddress
@@ -16,7 +17,7 @@ import java.net.InetSocketAddress
  */
 data class ConePlayer(
     //玩家id
-    val id: Int,
+    @BsonId val id: Int,
     //玩家名
     val name: String,
     //密码

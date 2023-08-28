@@ -33,7 +33,7 @@ data class CreateRoomC2SPacket(
         }
     }
 
-    override fun process(player: ConePlayer) {
+    override suspend fun process(player: ConePlayer) {
         ConeRoom.onCreate(player, rName,mcVersion, isCreative, isFabric, blockStateAmount)
     }
 

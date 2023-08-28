@@ -25,7 +25,7 @@ data class GetChunkC2SPacket(
     }
 
 
-    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+    override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
         playingRoom.readBlock(dimId,chunkPosi){ bpos, bsid, tag->
             ConeNetSender.sendPacket(BlockDataC2CPacket(dimId,bpos ,bsid,tag),player.addr)
         }

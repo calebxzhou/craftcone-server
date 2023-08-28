@@ -19,9 +19,8 @@ data class MovePlayerXyzC2SPacket(
         override fun read(buf: FriendlyByteBuf)=MovePlayerXyzC2SPacket(buf.readFloat(),buf.readFloat(),buf.readFloat())
 
     }
-    override fun process(player: ConePlayer, playingRoom: ConeRoom) {
+    override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) =
         player.sendPacket(PlayerMoveXyzS2CPacket(player.id,x,y,z))
-    }
 
 
 }

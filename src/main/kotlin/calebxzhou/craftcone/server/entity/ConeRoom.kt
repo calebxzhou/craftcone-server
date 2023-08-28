@@ -13,6 +13,7 @@ import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.server.table.RoomInfoRow
 import calebxzhou.craftcone.server.table.RoomInfoTable
+import org.bson.codecs.pojo.annotations.BsonId
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -26,7 +27,7 @@ import kotlin.random.Random
  */
 data class ConeRoom(
     //房间ID
-    val id: Int,
+    @BsonId val id: Int,
     //房间名
     val name: String,
     //房主

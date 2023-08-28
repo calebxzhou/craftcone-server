@@ -22,7 +22,7 @@ data class JoinRoomC2SPacket(
     }
 
 
-    override fun process(player: ConePlayer){
+    override suspend fun process(player: ConePlayer){
         ConeRoom.onPlayerJoin(player,rid)
     }
 

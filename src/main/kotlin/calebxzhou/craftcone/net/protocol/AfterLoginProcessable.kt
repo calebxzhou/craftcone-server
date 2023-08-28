@@ -8,5 +8,5 @@ import calebxzhou.craftcone.server.entity.ConePlayer
 //玩家登录后 数据包
 interface AfterLoginProcessable {
     //处理数据
-    fun process(player: ConePlayer)
+    suspend fun process(player: ConePlayer)
 }
