@@ -36,7 +36,7 @@ object ConeNetSender {
         }
 
     fun ConePlayer.sendPacket(packet: BufferWritable) {
-        sendPacket( this.addr,packet)
+        sendPacket(this.addr,packet)
     }
     fun ConeRoom.sendPacketToAll(sender:ConePlayer,packet: BufferWritable){
         inRoomPlayers.forEach {

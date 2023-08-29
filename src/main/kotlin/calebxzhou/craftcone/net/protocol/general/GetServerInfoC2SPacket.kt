@@ -1,9 +1,13 @@
 package calebxzhou.craftcone.net.protocol.general
 
 import calebxzhou.craftcone.net.ConeByteBuf
+import calebxzhou.craftcone.net.coneSenP
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.server.CONF
+import calebxzhou.craftcone.server.VERSION_NUM
+import calebxzhou.craftcone.server.entity.ConePlayer
 import java.net.InetSocketAddress
 
 /**
@@ -15,6 +19,7 @@ class GetServerInfoC2SPacket : Packet,BeforeLoginProcessable{
     }
 
     override suspend fun process(clientAddress: InetSocketAddress) {
-
+        coneSenP(clientAddress,ServerInfoS2CPacket(VERSION_NUM,ConePlayer.onlinePlayerCount,CONF.info.maxPlayerLimit,
+            CONF.info.serverName, CONF.info.serverDescription, CONF.info.serverIconBase64))
     }
 }

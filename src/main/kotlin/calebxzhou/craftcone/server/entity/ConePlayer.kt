@@ -30,9 +30,10 @@ data class ConePlayer(
     val email: String,
     //创建时间
     val createTime: Long,
+) : Packet, BufferWritable {
+    @Volatile
     //当前登录ip地址
     var addr: InetSocketAddress = InetSocketAddress(0)
-) : Packet, BufferWritable {
     override fun write(buf: ConeByteBuf) {
         buf.writeUtf(id.toHexString())
         buf.writeUtf(name)

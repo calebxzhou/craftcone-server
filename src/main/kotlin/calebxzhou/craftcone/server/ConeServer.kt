@@ -10,7 +10,6 @@ import io.netty.bootstrap.Bootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
-import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.nio.NioDatagramChannel
@@ -71,13 +70,11 @@ object ConeServer {
 
     val channelFuture: ChannelFuture
 
-    private val workerGroup: EventLoopGroup = NioEventLoopGroup(Runtime.getRuntime().availableProcessors())
 
     init {
         logger.info { "Starting CraftCone Server at Port $PORT" }
-        try {
-            val b = Bootstrap()
-                .group(workerGroup)
+        channelFuture  = Bootstrap()
+                .group(NioEventLoopGroup())
                 .channel(NioDatagramChannel::class.java)
                 .option(ChannelOption.SO_BROADCAST, true)
                 .handler(object : ChannelInitializer<DatagramChannel>() {
@@ -87,12 +84,8 @@ object ConeServer {
                     }
 
                 })
-            channelFuture = b.bind(PORT).sync()
-            channelFuture.channel().closeFuture().sync()
-        } finally {
-            workerGroup.shutdownGracefully()
-        }
-
+                .bind(PORT)
+                .syncUninterruptibly()
     }
 }
 
