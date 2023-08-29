@@ -1,7 +1,8 @@
 package calebxzhou.craftcone.server
 
 import calebxzhou.craftcone.net.ConeNetReceiver
-import calebxzhou.craftcone.server.entity.*
+import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeRoom
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoClient
@@ -23,58 +24,47 @@ import mu.KotlinLogging
 val logger = KotlinLogging.logger {}
 const val VERSION_NUM = 3
 
-val CONF = ConeServerConfig.loadConfig()
+val CONF = ConeServerConfig.loadConfig().also { logger.info("config loaded! $it") }
 
 val PORT = CONF.port
 val DB = CONF.run {
     runBlocking {
-        MongoClient.create(db.url).getDatabase(db.dbName).also { mdb ->
-            logger.info { "Init Database" }
-            ConePlayer.collectionName.run {
-                mdb.createCollection(this)
-                mdb.getCollection<ConePlayer>(this).apply {
-                    //player name index
-                    createIndex(
-                        Indexes.hashed(ConePlayer::name.name),
-                        IndexOptions().unique(true)
-                    )
-                }
-            }
-            ConeRoom.collectionName.run {
-                mdb.createCollection(this)
-                mdb.getCollection<ConeRoom>(ConeRoom.collectionName).apply {
-                    //chunk pos index
-                    createIndex(
-                        Indexes.compoundIndex(
-                            Indexes.hashed(
-                                ConeRoom::dimensions.name
-                                        + "."
-                                        + ConeDimension::dimId.name
-                            ),
-                            Indexes.hashed(
-                                ConeRoom::dimensions.name
-                                        + "."
-                                        + ConeDimension::blockData.name
-                                        + "."
-                                        + ConeBlockData::chunkPos.name
-                            ),
+        try {
+            MongoClient.create(db.url).getDatabase(db.dbName).also { mdb ->
+                logger.info { "Init Database" }
+                ConePlayer.collectionName.run {
+                    mdb.createCollection(this)
+                    mdb.getCollection<ConePlayer>(this).apply {
+                        //player name index
+                        createIndex(
+                            Indexes.hashed(ConePlayer::name.name),
+                            IndexOptions().unique(true)
                         )
-                    )
-                    //block pos unique
-                    createIndex(
-                        Indexes.hashed(
-                            ConeRoom::dimensions.name
-                                    + "."
-                                    + ConeDimension::blockData.name
-                                    + "."
-                                    + ConeBlockPos::asLong.name
-                        ),
-                        IndexOptions().unique(true)
-                    )
+                    }
+                }
+                ConeRoom.collectionName.run {
+                    mdb.createCollection(this)
+                    mdb.getCollection<ConeRoom>(ConeRoom.collectionName).apply {
+                        //owner id index
+                        createIndex(Indexes.hashed("owner._id"))
+                        //chunk pos index
+                        createIndex(
+                            Indexes.compoundIndex(
+                                Indexes.hashed("dimensions.dimId"),
+                                Indexes.hashed("dimensions.blockData.chunkPos"),
+                            )
+                        )
+                        //block pos unique
+                        createIndex(
+                            Indexes.hashed("dimensions.blockData.blockPos.asLong"),
+                            IndexOptions().unique(true)
+                        )
+                    }
                 }
             }
-
-
+        } catch (e: Exception) {
+            logger.error { "failed connect database, check config!" }
+            throw e
         }
     }
 }

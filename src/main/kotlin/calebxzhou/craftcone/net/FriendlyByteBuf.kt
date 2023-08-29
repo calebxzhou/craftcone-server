@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBufAllocator
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import io.netty.util.ByteProcessor
+import org.bson.types.ObjectId
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -43,6 +44,11 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
             return i * 3
         }
     }
+    fun writeObjectId(objectId: ObjectId):FriendlyByteBuf{
+        writeBytes(objectId.toByteArray())
+        return this
+    }
+    fun readObjectId():ObjectId = ObjectId(readBytes(12).array())
 
     fun writeUUID(uUID: UUID): FriendlyByteBuf {
         writeLong(uUID.mostSignificantBits)

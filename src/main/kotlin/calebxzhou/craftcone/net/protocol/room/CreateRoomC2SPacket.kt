@@ -18,23 +18,18 @@ data class CreateRoomC2SPacket(
     val mcVersion : String,
     //是否创造模式
     val isCreative: Boolean,
-    //mod加载器？Fabric：Forge
-    val isFabric: Boolean,
     //方块状态数量
     val blockStateAmount: Int,
 ): Packet, AfterLoginProcessable {
 
     companion object : BufferReadable<CreateRoomC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): CreateRoomC2SPacket {
-            return CreateRoomC2SPacket(
-                buf.readUtf(),
-                buf.readUtf(),
-                buf.readBoolean(),buf.readBoolean(),buf.readVarInt())
-        }
+        override fun read(buf: FriendlyByteBuf): CreateRoomC2SPacket = CreateRoomC2SPacket(
+            buf.readUtf(),
+            buf.readUtf(), buf.readBoolean(),buf.readVarInt())
     }
 
     override suspend fun process(player: ConePlayer) {
-        ConeRoom.onCreate(player, rName,mcVersion, isCreative, isFabric, blockStateAmount)
+        ConeRoom.onPlayerCreate(player, this)
     }
 
 

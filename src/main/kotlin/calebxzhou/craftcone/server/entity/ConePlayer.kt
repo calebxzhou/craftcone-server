@@ -67,7 +67,7 @@ data class ConePlayer(
         suspend fun getByName(name: String): ConePlayer? = dbcl.find(eq(ConePlayer::name.name, name)).firstOrNull()
 
         //根据uid获取
-        suspend fun getByUid(id: ObjectId): ConePlayer? = dbcl.find(eq(ConePlayer::id.name, id)).firstOrNull()
+        suspend fun getByUid(id: ObjectId): ConePlayer? = dbcl.find(eq("_id", id)).firstOrNull()
 
         //注册
         suspend fun register(clientAddress: InetSocketAddress, packet: RegisterC2SPacket) =

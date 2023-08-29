@@ -15,7 +15,7 @@ class DelRoomC2SPacket : Packet,AfterLoginProcessable{
         override fun read(buf: FriendlyByteBuf) = DelRoomC2SPacket()
     }
     override suspend fun process(player: ConePlayer) {
-        ConeRoom.onDelete(player)
+        ConeRoom.onPlayerDelete(player)
     }
 
 }

@@ -39,7 +39,7 @@ object ConeNetSender {
         sendPacket( this.addr,packet)
     }
     fun ConeRoom.sendPacketToAll(sender:ConePlayer,packet: BufferWritable){
-        onlinePlayers.forEach {
+        inRoomPlayers.forEach {
             if (sender.addr != it.value.addr) {
                 sendPacket(it.value.addr,packet)
             }

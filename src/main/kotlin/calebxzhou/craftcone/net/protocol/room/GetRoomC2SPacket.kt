@@ -6,21 +6,22 @@ import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
+import org.bson.types.ObjectId
 
 /**
  * Created  on 2023-08-13,16:10.
  */
 data class GetRoomC2SPacket(
-    val rid:Int
+    val rid:ObjectId
 ): Packet,AfterLoginProcessable {
     companion object:BufferReadable<GetRoomC2SPacket>{
         override fun read(buf: FriendlyByteBuf): GetRoomC2SPacket {
-            return GetRoomC2SPacket(buf.readVarInt())
+            return GetRoomC2SPacket(buf.readObjectId())
         }
 
     }
     override suspend fun process(player: ConePlayer) {
-        ConeRoom.onRetrieve(player, rid)
+        ConeRoom.onPlayerGet(player, rid)
     }
 
 }
