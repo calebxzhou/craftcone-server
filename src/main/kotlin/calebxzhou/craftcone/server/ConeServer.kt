@@ -33,30 +33,28 @@ val DB = CONF.run {
             MongoClient.create(db.url).getDatabase(db.dbName).also { mdb ->
                 logger.info { "Init Database" }
                 ConePlayer.collectionName.run {
-                    mdb.createCollection(this)
                     mdb.getCollection<ConePlayer>(this).apply {
                         //player name index
                         createIndex(
-                            Indexes.hashed(ConePlayer::name.name),
+                            Indexes.ascending(ConePlayer::name.name),
                             IndexOptions().unique(true)
                         )
                     }
                 }
                 ConeRoom.collectionName.run {
-                    mdb.createCollection(this)
                     mdb.getCollection<ConeRoom>(ConeRoom.collectionName).apply {
                         //owner id index
                         createIndex(Indexes.hashed("owner._id"))
                         //chunk pos index
                         createIndex(
                             Indexes.compoundIndex(
-                                Indexes.hashed("dimensions.dimId"),
-                                Indexes.hashed("dimensions.blockData.chunkPos"),
+                                Indexes.ascending("dimensions.dimId"),
+                                Indexes.ascending("dimensions.blockData.chunkPos"),
                             )
                         )
                         //block pos unique
                         createIndex(
-                            Indexes.hashed("dimensions.blockData.blockPos.asLong"),
+                            Indexes.ascending("dimensions.blockData.blockPos.asLong"),
                             IndexOptions().unique(true)
                         )
                     }
