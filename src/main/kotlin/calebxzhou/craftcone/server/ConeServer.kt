@@ -47,13 +47,13 @@ val DB = CONF.run {
                         //chunk pos index
                         createIndex(
                             Indexes.compoundIndex(
-                                Indexes.ascending("dimensions.dimId"),
-                                Indexes.ascending("dimensions.blockData.chunkPos"),
+                                Indexes.ascending("blockData.dimId"),
+                                Indexes.ascending("blockData.chunkPos"),
                             )
                         )
                         //block pos unique
                         createIndex(
-                            Indexes.ascending("dimensions.blockData.blockPos.asLong"),
+                            Indexes.ascending("blockData.blockPos.asLong"),
                             IndexOptions().unique(true)
                         )
                     }

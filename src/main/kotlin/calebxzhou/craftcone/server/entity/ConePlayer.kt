@@ -100,7 +100,7 @@ data class ConePlayer(
             player.addr = addr
             onlinePlayers += player.id to player
             addrToPlayer += player.addr to player
-            logger.info { "$this 已上线！" }
+            logger.info { "$player 已上线！" }
             coneSenP(addr, OkDataS2CPacket{it.writeObjectId(player.id)})
             coneInfoT(addr, "登录成功")
         }

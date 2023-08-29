@@ -26,7 +26,7 @@ data class GetChunkC2SPacket(
 
     override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
         playingRoom.readBlock(dimId,chunkPos){
-            player.sendPacket(it.dto(dimId))
+            player.sendPacket(it.dto)
         }
     }
 

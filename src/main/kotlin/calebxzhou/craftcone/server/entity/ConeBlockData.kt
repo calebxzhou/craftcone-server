@@ -6,10 +6,12 @@ import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
  * Created  on 2023-08-27,8:10.
  */
 data class ConeBlockData(
+    val dimId:Int,
     val blockPos: ConeBlockPos,
-    val chunkPos: ConeChunkPos,
+    val chunkPos: Int,
     val blockStateId:Int,
     val tag:String?
 ){
-    fun dto(dimId:Int) = BlockDataC2CPacket(dimId,blockPos,blockStateId,tag)
+    val  dto
+        get() = BlockDataC2CPacket(dimId,blockPos,blockStateId,tag)
 }

@@ -14,11 +14,10 @@ import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.net.protocol.room.CreateRoomC2SPacket
 import calebxzhou.craftcone.server.DB
 import calebxzhou.craftcone.server.logger
-import com.mongodb.client.model.Aggregates.*
-import com.mongodb.client.model.Filters.and
 import com.mongodb.client.model.Filters.eq
-import com.mongodb.client.model.Updates
+import com.mongodb.client.model.Updates.push
 import kotlinx.coroutines.flow.firstOrNull
+import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
 import kotlin.random.Random
@@ -35,13 +34,14 @@ data class ConeRoom(
     val blockStateAmount: Int,
     val seed: Long,
     val createTime: Long,
-    val dimensions: List<ConeDimension> = arrayListOf()
-) : Packet, BufferWritable {
     //dimension id to saved blocks
+    val blockData: List<ConeBlockData> = arrayListOf()
+) : Packet, BufferWritable {
+
     @Transient
     val inRoomPlayers = hashMapOf<ObjectId, ConePlayer>()
     override fun write(buf: ConeByteBuf) {
-        buf.writeUtf(id.toHexString())
+        buf.writeObjectId(id)
         buf.writeUtf(name)
         buf.writeUtf(mcVer)
         buf.writeBoolean(isCreative)
@@ -57,35 +57,23 @@ data class ConeRoom(
 
     //读方块并执行操作
     suspend fun readBlock(dimId: Int, chunkPos: ConeChunkPos, doForEachBlock: (ConeBlockData) -> Unit) {
-        dbcl.aggregate<ConeBlockData>(
-            listOf(
-                match(
-                    and(
-                        eq("_id", id),
-                        eq("dimensions.dimId", dimId),
-                        eq("dimensions.blockData.chunkPos", chunkPos)
-                    )
-                ),
-                unwind("\$dimensions"),
-                match(eq("dimensions.dimId", dimId)),
-                unwind("\$dimensions.blockData"),
-                replaceRoot("\$dimensions.blockData")
-            )
-        ).collect { doForEachBlock(it) }
-
+        val query = Document("_id", id)
+            .append("blockData", Document("\$elemMatch", Document("dimId", dimId).append("chunkPos", chunkPos.asInt)))
+        dbcl.find(query).firstOrNull()?.blockData?.forEach(doForEachBlock)
     }
 
     //写方块
     suspend fun writeBlock(packet: BlockDataC2CPacket) = packet.run {
         ConeBlockData(
+            dimId,
             bpos,
-            bpos.chunkPos,
+            bpos.chunkPos.asInt,
             stateId,
             tag
         ).run {
             dbcl.updateOne(
-                eq("dimensions.dimId", dimId),
-                Updates.push("dimensions.$.blockData", this)
+                eq("_id", id),
+                push("blockData", this),
             )
         }
     }

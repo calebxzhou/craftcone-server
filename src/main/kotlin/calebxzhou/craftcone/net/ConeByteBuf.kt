@@ -48,7 +48,7 @@ class ConeByteBuf(private val source: ByteBuf) : ByteBuf() {
         writeBytes(objectId.toByteArray())
         return this
     }
-    fun readObjectId():ObjectId = ObjectId(readBytes(12).array())
+    fun readObjectId():ObjectId = ObjectId(readBytes(12).nioBuffer())
 
     fun writeUUID(uUID: UUID): ConeByteBuf {
         writeLong(uUID.mostSignificantBits)
