@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.general
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.MsgLevel
 import calebxzhou.craftcone.net.protocol.MsgType
@@ -14,7 +14,7 @@ data class SysMsgS2CPacket(
     val lvl: MsgLevel,
     val msg:String
 ): Packet,BufferWritable {
-    override fun write(buf: FriendlyByteBuf) {
+    override fun write(buf: ConeByteBuf) {
         buf.writeVarInt(type.id)
         buf.writeVarInt(lvl.id)
         buf.writeUtf(msg)

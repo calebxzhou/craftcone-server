@@ -1,7 +1,7 @@
 package calebxzhou.craftcone.net.protocol.game
 
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacket
-import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -16,7 +16,7 @@ data class MovePlayerWpC2SPacket(
     val p: Float,
 ) : Packet,InRoomProcessable    {
     companion object : BufferReadable<MovePlayerWpC2SPacket>{
-        override fun read(buf: FriendlyByteBuf) = MovePlayerWpC2SPacket(buf.readFloat(),buf.readFloat())
+        override fun read(buf: ConeByteBuf) = MovePlayerWpC2SPacket(buf.readFloat(),buf.readFloat())
     }
 
     override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {

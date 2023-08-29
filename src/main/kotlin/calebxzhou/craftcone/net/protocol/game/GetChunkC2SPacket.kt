@@ -1,7 +1,7 @@
 package calebxzhou.craftcone.net.protocol.game
 
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacket
-import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -18,7 +18,7 @@ data class GetChunkC2SPacket(
     val chunkPos: ConeChunkPos,
 ) : Packet, InRoomProcessable {
     companion object : BufferReadable<GetChunkC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): GetChunkC2SPacket {
+        override fun read(buf: ConeByteBuf): GetChunkC2SPacket {
             return GetChunkC2SPacket(buf.readVarInt(),ConeChunkPos(buf.readShort().toInt(), buf.readShort().toInt()))
         }
     }

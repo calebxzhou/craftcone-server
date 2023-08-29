@@ -4,8 +4,6 @@ import calebxzhou.craftcone.server.logger
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.DatagramPacket
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 
 
 /**
@@ -17,7 +15,7 @@ class ConeNetReceiver : SimpleChannelInboundHandler<DatagramPacket>() {
         try {
             //第一个byte
             val packetId = msg.content().readByte().toInt()
-            val data = FriendlyByteBuf(msg.content())
+            val data = ConeByteBuf(msg.content())
             ConePacketSet.createAndProcess(clientAddr,packetId,data)
         } catch (e: Exception) {
             exceptionCaught(ctx,e)

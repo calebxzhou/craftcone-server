@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.room
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -15,7 +15,7 @@ data class GetRoomC2SPacket(
     val rid:ObjectId
 ): Packet,AfterLoginProcessable {
     companion object:BufferReadable<GetRoomC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): GetRoomC2SPacket {
+        override fun read(buf: ConeByteBuf): GetRoomC2SPacket {
             return GetRoomC2SPacket(buf.readObjectId())
         }
 

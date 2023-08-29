@@ -1,8 +1,8 @@
 package calebxzhou.craftcone.server.entity
 
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacket
 import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
-import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.coneErrD
 import calebxzhou.craftcone.net.coneInfoT
 import calebxzhou.craftcone.net.protocol.BufferWritable
@@ -40,7 +40,7 @@ data class ConeRoom(
     //dimension id to saved blocks
     @Transient
     val inRoomPlayers = hashMapOf<ObjectId, ConePlayer>()
-    override fun write(buf: FriendlyByteBuf) {
+    override fun write(buf: ConeByteBuf) {
         buf.writeUtf(id.toHexString())
         buf.writeUtf(name)
         buf.writeUtf(mcVer)

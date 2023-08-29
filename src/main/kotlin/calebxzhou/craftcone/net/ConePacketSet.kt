@@ -24,7 +24,7 @@ object ConePacketSet {
     //包writer/reader种类 [id]
     private val packetTypes = arrayListOf<PacketType>()
     //c2s
-    private val packetIdReaders = linkedMapOf<Int,(FriendlyByteBuf) -> Packet>()
+    private val packetIdReaders = linkedMapOf<Int,(ConeByteBuf) -> Packet>()
     //s2c
     private val packetWriterClassIds = linkedMapOf<Class<out BufferWritable>,Int>()
     init {
@@ -59,7 +59,7 @@ object ConePacketSet {
 
     }
 
-    private fun registerPacket(reader: (FriendlyByteBuf) -> Packet){
+    private fun registerPacket(reader: (ConeByteBuf) -> Packet){
         packetIdReaders += Pair (packetTypes.size,reader)
         packetTypes += PacketType.READ
     }
@@ -69,7 +69,7 @@ object ConePacketSet {
     }
     
     //客户端传入包 服务端这边创建+处理
-    fun createAndProcess(clientAddr: InetSocketAddress, packetId: Int,  data: FriendlyByteBuf)=
+    fun createAndProcess(clientAddr: InetSocketAddress, packetId: Int,  data: ConeByteBuf)=
         packetTypes.getOrNull(packetId)?.run {
             when(this){
                 PacketType.READ ->{

@@ -21,7 +21,7 @@ import java.util.*
 /**
  * Created  on 2023-07-02,12:43.
  */
-class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
+class ConeByteBuf(private val source: ByteBuf) : ByteBuf() {
 
     companion object{
         fun getVarLongSize(input: Long): Int {
@@ -44,13 +44,13 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
             return i * 3
         }
     }
-    fun writeObjectId(objectId: ObjectId):FriendlyByteBuf{
+    fun writeObjectId(objectId: ObjectId):ConeByteBuf{
         writeBytes(objectId.toByteArray())
         return this
     }
     fun readObjectId():ObjectId = ObjectId(readBytes(12).array())
 
-    fun writeUUID(uUID: UUID): FriendlyByteBuf {
+    fun writeUUID(uUID: UUID): ConeByteBuf {
         writeLong(uUID.mostSignificantBits)
         writeLong(uUID.leastSignificantBits)
         return this
@@ -84,11 +84,11 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
         }
     }
 
-    fun writeUtf(string: String): FriendlyByteBuf {
+    fun writeUtf(string: String): ConeByteBuf {
         return this.writeUtf(string, 32767)
     }
 
-    fun writeUtf(string: String, i: Int): FriendlyByteBuf {
+    fun writeUtf(string: String, i: Int): ConeByteBuf {
         return if (string.length > i) {
             val var10002 = string.length
             throw EncoderException("String too big (was $var10002 characters, max $i)")
@@ -118,7 +118,7 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
         } while (b.toInt() and 0b10000000 == 0b10000000)
         return i
     }
-    fun writeVarInt(i: Int): FriendlyByteBuf {
+    fun writeVarInt(i: Int): ConeByteBuf {
         var input = i
         while (input and -128 != 0) {
             writeByte(input and 0b01111111 or 0b10000000)
@@ -136,7 +136,7 @@ class FriendlyByteBuf(private val source: ByteBuf) : ByteBuf() {
      *
      * @param array the array to write
      */
-    fun writeVarIntArray(array: IntArray): FriendlyByteBuf {
+    fun writeVarIntArray(array: IntArray): ConeByteBuf {
         writeVarInt(array.size)
         for (i in array) {
             writeVarInt(i)

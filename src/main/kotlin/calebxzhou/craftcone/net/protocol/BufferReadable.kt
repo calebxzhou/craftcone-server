@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 
 
 /**
@@ -9,5 +9,5 @@ import calebxzhou.craftcone.net.FriendlyByteBuf
 //数据可读包
 interface BufferReadable<T:Packet> : Packet{
     // 读取 数据
-    fun read(buf: FriendlyByteBuf) : T
+    fun read(buf: ConeByteBuf) : T
 }

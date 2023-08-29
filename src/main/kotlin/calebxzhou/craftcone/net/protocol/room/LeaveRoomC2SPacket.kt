@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.room
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -14,7 +14,7 @@ import calebxzhou.craftcone.server.entity.ConeRoom
 class LeaveRoomC2SPacket : Packet, InRoomProcessable {
 
     companion object : BufferReadable<LeaveRoomC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): LeaveRoomC2SPacket {
+        override fun read(buf: ConeByteBuf): LeaveRoomC2SPacket {
             return LeaveRoomC2SPacket()
         }
     }

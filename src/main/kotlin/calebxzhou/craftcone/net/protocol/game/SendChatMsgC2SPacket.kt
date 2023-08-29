@@ -1,7 +1,7 @@
 package calebxzhou.craftcone.net.protocol.game
 
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
-import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.*
 import calebxzhou.craftcone.net.protocol.general.SysMsgS2CPacket
 import calebxzhou.craftcone.server.entity.ConePlayer
@@ -14,7 +14,7 @@ data class SendChatMsgC2SPacket (
     val msg: String,
 ): Packet, InRoomProcessable {
     companion object : BufferReadable<SendChatMsgC2SPacket>{
-        override fun read(buf: FriendlyByteBuf) = SendChatMsgC2SPacket(buf.readUtf())
+        override fun read(buf: ConeByteBuf) = SendChatMsgC2SPacket(buf.readUtf())
     }
 
     override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {

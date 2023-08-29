@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.account
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -19,7 +19,7 @@ data class LoginByUidC2SPacket(
     val pwd: String,
 ) : Packet, BeforeLoginProcessable {
     companion object : BufferReadable<LoginByUidC2SPacket> {
-        override fun read(buf: FriendlyByteBuf) = LoginByUidC2SPacket(ObjectId(buf.readUtf()), buf.readUtf())
+        override fun read(buf: ConeByteBuf) = LoginByUidC2SPacket(ObjectId(buf.readUtf()), buf.readUtf())
     }
 
     override suspend fun process(clientAddress: InetSocketAddress) = ConePlayer.loginByUid(clientAddress,this)

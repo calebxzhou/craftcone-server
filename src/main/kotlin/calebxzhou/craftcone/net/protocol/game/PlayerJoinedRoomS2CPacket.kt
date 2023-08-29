@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.game
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
 import org.bson.types.ObjectId
@@ -13,7 +13,7 @@ data class PlayerJoinedRoomS2CPacket(
     val pid: ObjectId,
     val pName: String
 ) : Packet, BufferWritable{
-    override fun write(buf: FriendlyByteBuf) {
+    override fun write(buf: ConeByteBuf) {
         buf.writeObjectId(pid).writeUtf(pName)
     }
 }

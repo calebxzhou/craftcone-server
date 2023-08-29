@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.server.entity
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.coneErrD
 import calebxzhou.craftcone.net.coneInfoT
 import calebxzhou.craftcone.net.coneSenP
@@ -33,7 +33,7 @@ data class ConePlayer(
     //当前登录ip地址
     var addr: InetSocketAddress = InetSocketAddress(0)
 ) : Packet, BufferWritable {
-    override fun write(buf: FriendlyByteBuf) {
+    override fun write(buf: ConeByteBuf) {
         buf.writeUtf(id.toHexString())
         buf.writeUtf(name)
         //密码有几位就有几个*
@@ -74,10 +74,10 @@ data class ConePlayer(
             getByName(packet.pName)?.run {
                 coneErrD(clientAddress, "注册过了")
             } ?: run {
-                ConePlayer(ObjectId(), packet.pName, packet.pwd, packet.email, System.currentTimeMillis()).let {
-                    dbcl.insertOne(it)
-                    logger.info { "$it 已注册" }
-                    coneSenP(clientAddress, OkDataS2CPacket())
+                ConePlayer(ObjectId(), packet.pName, packet.pwd, packet.email, System.currentTimeMillis()).run {
+                    dbcl.insertOne(this)
+                    logger.info { "$this 已注册" }
+                    coneSenP(clientAddress, OkDataS2CPacket{it.writeObjectId(id)})
                 }
             }
 
@@ -100,7 +100,7 @@ data class ConePlayer(
             onlinePlayers += player.id to player
             addrToPlayer += player.addr to player
             logger.info { "$this 已上线！" }
-            coneSenP(addr, OkDataS2CPacket())
+            coneSenP(addr, OkDataS2CPacket{it.writeObjectId(player.id)})
             coneInfoT(addr, "登录成功")
         }
 

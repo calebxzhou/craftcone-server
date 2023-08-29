@@ -1,7 +1,7 @@
 package calebxzhou.craftcone.net.protocol.game
 
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
-import calebxzhou.craftcone.net.FriendlyByteBuf
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
@@ -25,7 +25,7 @@ data class BlockDataC2CPacket(
     val tag: String?
 ) : Packet, BufferWritable,InRoomProcessable {
     companion object : BufferReadable<BlockDataC2CPacket> {
-        override fun read(buf: FriendlyByteBuf) = BlockDataC2CPacket(
+        override fun read(buf: ConeByteBuf) = BlockDataC2CPacket(
             buf.readVarInt(),
             ConeBlockPos(buf.readLong()),
             buf.readVarInt(),
@@ -36,7 +36,7 @@ data class BlockDataC2CPacket(
 
 
 
-    override fun write(buf: FriendlyByteBuf) {
+    override fun write(buf: ConeByteBuf) {
         buf.writeVarInt(dimId)
         buf.writeLong(bpos.asLong)
         buf.writeVarInt(stateId)

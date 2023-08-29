@@ -22,7 +22,7 @@ object ConeNetSender {
     private val senderScope = CoroutineScope(Dispatchers.IO)
     @JvmStatic
     fun sendPacket(address: InetSocketAddress,packet: BufferWritable) = senderScope.launch {
-            val data = FriendlyByteBuf(PooledByteBufAllocator.DEFAULT.directBuffer())
+            val data = ConeByteBuf(PooledByteBufAllocator.DEFAULT.directBuffer())
             val packetId = ConePacketSet.getPacketId(packet.javaClass)?: let{
                 logger.error("找不到$packet 对应的包ID")
                 return@launch

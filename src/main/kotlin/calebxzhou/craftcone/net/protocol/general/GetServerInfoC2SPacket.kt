@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.general
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -11,7 +11,7 @@ import java.net.InetSocketAddress
  */
 class GetServerInfoC2SPacket : Packet,BeforeLoginProcessable{
     companion object : BufferReadable<GetServerInfoC2SPacket> {
-        override fun read(buf: FriendlyByteBuf) = GetServerInfoC2SPacket()
+        override fun read(buf: ConeByteBuf) = GetServerInfoC2SPacket()
     }
 
     override suspend fun process(clientAddress: InetSocketAddress) {

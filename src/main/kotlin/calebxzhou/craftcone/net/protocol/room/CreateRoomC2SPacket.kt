@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.room
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.AfterLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -23,7 +23,7 @@ data class CreateRoomC2SPacket(
 ): Packet, AfterLoginProcessable {
 
     companion object : BufferReadable<CreateRoomC2SPacket>{
-        override fun read(buf: FriendlyByteBuf): CreateRoomC2SPacket = CreateRoomC2SPacket(
+        override fun read(buf: ConeByteBuf): CreateRoomC2SPacket = CreateRoomC2SPacket(
             buf.readUtf(),
             buf.readUtf(), buf.readBoolean(),buf.readVarInt())
     }

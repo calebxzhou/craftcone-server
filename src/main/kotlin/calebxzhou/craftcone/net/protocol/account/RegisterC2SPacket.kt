@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.account
 
-import calebxzhou.craftcone.net.FriendlyByteBuf
+import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -16,7 +16,7 @@ data class RegisterC2SPacket(
     val email:String,
 ): Packet, BeforeLoginProcessable {
     companion object : BufferReadable<RegisterC2SPacket> {
-        override fun read(buf: FriendlyByteBuf) = RegisterC2SPacket( buf.readUtf(),buf.readUtf(),buf.readUtf())
+        override fun read(buf: ConeByteBuf) = RegisterC2SPacket( buf.readUtf(),buf.readUtf(),buf.readUtf())
 
     }
 
