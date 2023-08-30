@@ -47,17 +47,20 @@ object ConeNetSender {
     }
 }
 //客户端错误弹框
-fun coneErrD(player: ConePlayer,msg:String){
-    coneErrD(player.addr,msg)
+fun coneErrDialog(player: ConePlayer, msg:String){
+    coneErrDialog(player.addr,msg)
 }
-fun coneErrD(clientAddress: InetSocketAddress,msg:String){
+fun coneErrDialog(clientAddress: InetSocketAddress, msg:String){
     ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Dialog,MsgLevel.Err,msg))
 }
 //客户端消息弹框
-fun coneInfoT(clientAddress: InetSocketAddress,msg: String){
+fun coneInfoToast(clientAddress: InetSocketAddress, msg: String){
     ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Toast,MsgLevel.Info,msg))
 }
+fun coneInfoDialog(clientAddress: InetSocketAddress,msg:String){
+    ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Dialog,MsgLevel.Info,msg))
+}
 //发包
-fun coneSenP(clientAddress: InetSocketAddress, packet: BufferWritable){
+fun coneSendPacket(clientAddress: InetSocketAddress, packet: BufferWritable){
     ConeNetSender.sendPacket(clientAddress,packet)
 }

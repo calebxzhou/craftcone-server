@@ -3,13 +3,15 @@ package calebxzhou.craftcone.server.entity
 import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacket
 import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
-import calebxzhou.craftcone.net.coneErrD
-import calebxzhou.craftcone.net.coneInfoT
+import calebxzhou.craftcone.net.coneErrDialog
+import calebxzhou.craftcone.net.coneInfoToast
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
 import calebxzhou.craftcone.net.protocol.game.PlayerJoinedRoomS2CPacket
 import calebxzhou.craftcone.net.protocol.game.PlayerLeftRoomS2CPacket
+import calebxzhou.craftcone.net.protocol.general.CloseScreenS2CPacket
+import calebxzhou.craftcone.net.protocol.general.CopyToClipboardS2CPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.net.protocol.room.CreateRoomC2SPacket
 import calebxzhou.craftcone.server.DB
@@ -100,7 +102,7 @@ data class ConeRoom(
             getById(rid)?.run {
                 player.sendPacket(this)
             } ?: run {
-                coneErrD(player, "找不到房间$rid")
+                coneErrDialog(player, "找不到房间$rid")
             }
 
         //创建房间
@@ -108,7 +110,7 @@ data class ConeRoom(
             player: ConePlayer,
             pkt: CreateRoomC2SPacket
         ) = getPlayerOwnRoom(player.id)?.run {
-            coneErrD(player, "建过房间了,ID=$id")
+            coneErrDialog(player, "建过房间了,ID=$id")
         } ?: run {
             ConeRoom(
                 ObjectId(),
@@ -146,17 +148,25 @@ data class ConeRoom(
             inRoomPlayers -= player.id
             uidPlayingRooms -= player.id
             sendPacketToAll(player, PlayerLeftRoomS2CPacket(player.id))
-            coneInfoT(player.addr, "已退出房间 ${player.name}")
+            coneInfoToast(player.addr, "已退出房间 ${player.name}")
         }
 
 
         //当玩家删除
         suspend fun onPlayerDelete(player: ConePlayer) = getPlayerOwnRoom(player.id)?.run {
             if (dbcl.deleteOne(eq("_id", id)).deletedCount > 0) {
-                coneInfoT(player.addr, "成功删除房间")
+                coneInfoToast(player.addr, "成功删除房间")
+                player.sendPacket(CloseScreenS2CPacket())
             }
         } ?: run {
-            coneErrD(player, "你没有房间")
+            coneErrDialog(player, "你没有房间")
+        }
+
+        suspend fun onPlayerGetMy(player: ConePlayer) = getPlayerOwnRoom(player.id)?.run{
+            player.sendPacket(CopyToClipboardS2CPacket(id.toHexString()))
+            coneInfoToast(player.addr,"已经复制你的房间ID。")
+        }?: run {
+            coneErrDialog(player, "你没有房间")
         }
 
     }

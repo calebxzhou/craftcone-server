@@ -1,9 +1,9 @@
 package calebxzhou.craftcone.server.entity
 
 import calebxzhou.craftcone.net.ConeByteBuf
-import calebxzhou.craftcone.net.coneErrD
-import calebxzhou.craftcone.net.coneInfoT
-import calebxzhou.craftcone.net.coneSenP
+import calebxzhou.craftcone.net.coneErrDialog
+import calebxzhou.craftcone.net.coneInfoToast
+import calebxzhou.craftcone.net.coneSendPacket
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.net.protocol.account.LoginByNameC2SPacket
@@ -73,36 +73,36 @@ data class ConePlayer(
         //注册
         suspend fun register(clientAddress: InetSocketAddress, packet: RegisterC2SPacket) =
             getByName(packet.pName)?.run {
-                coneErrD(clientAddress, "注册过了")
+                coneErrDialog(clientAddress, "注册过了")
             } ?: run {
                 ConePlayer(ObjectId(), packet.pName, packet.pwd, packet.email, System.currentTimeMillis()).run {
                     dbcl.insertOne(this)
                     logger.info { "$this 已注册" }
-                    coneSenP(clientAddress, OkDataS2CPacket{it.writeObjectId(id)})
+                    coneSendPacket(clientAddress, OkDataS2CPacket{it.writeObjectId(id)})
                 }
             }
 
         suspend fun loginByUid(addr: InetSocketAddress, pkt: LoginByUidC2SPacket) =
             getByUid(pkt.uid)?.run {
                 login(addr, pkt.pwd, this)
-            } ?: coneErrD(addr, "未注册")
+            } ?: coneErrDialog(addr, "未注册")
 
         suspend fun loginByName(addr: InetSocketAddress, pkt: LoginByNameC2SPacket) =
             getByName(pkt.name)?.run {
                 login(addr, pkt.pwd, this)
-            } ?: coneErrD(addr, "未注册")
+            } ?: coneErrDialog(addr, "未注册")
 
         private fun login(addr: InetSocketAddress, pwd: String, player: ConePlayer) {
             if (player.pwd != pwd) {
-                coneErrD(addr, "密码错误")
+                coneErrDialog(addr, "密码错误")
                 return
             }
             player.addr = addr
             onlinePlayers += player.id to player
             addrToPlayer += player.addr to player
             logger.info { "$player 已上线！" }
-            coneSenP(addr, OkDataS2CPacket{it.writeObjectId(player.id)})
-            coneInfoT(addr, "登录成功")
+            coneSendPacket(addr, OkDataS2CPacket{it.writeObjectId(player.id)})
+            coneInfoToast(addr, "登录成功")
         }
 
     }

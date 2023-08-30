@@ -30,6 +30,8 @@ object ConePacketSet {
     init {
         registerPacket(ConeRoom::class.java)
 
+        registerPacket(CloseScreenS2CPacket::class.java)
+        registerPacket(CopyToClipboardS2CPacket::class.java)
         registerPacket(DisconnectS2CPacket::class.java)
         registerPacket(GetServerInfoC2SPacket::read)
         registerPacket(OkDataS2CPacket::class.java)
@@ -53,6 +55,7 @@ object ConePacketSet {
 
         registerPacket(CreateRoomC2SPacket::read)
         registerPacket(DelRoomC2SPacket::read)
+        registerPacket(GetMyRoomC2SPacket::read)
         registerPacket(GetRoomC2SPacket::read)
         registerPacket(JoinRoomC2SPacket::read)
         registerPacket(LeaveRoomC2SPacket::read)
