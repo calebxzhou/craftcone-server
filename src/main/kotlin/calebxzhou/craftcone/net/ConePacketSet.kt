@@ -42,6 +42,7 @@ object ConePacketSet {
         registerPacket(LoginByNameC2SPacket::read)
         registerPacket(RegisterC2SPacket::read)
 
+        registerPacket(BlockDataAckS2CPacket::class.java)
         registerPacket(BlockDataC2CPacket::class.java)
         registerPacket(BlockDataC2CPacket::read)
         registerPacket(GetChunkC2SPacket::read)

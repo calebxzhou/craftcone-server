@@ -15,7 +15,7 @@ import java.net.InetSocketAddress
  * Created  on 2023-08-26,11:02.
  */
 object ConePacketProcessor {
-    private val procScope = CoroutineScope(Dispatchers.Default)
+    val procScope = CoroutineScope(Dispatchers.Default)
     //服务端处理包
     fun processPacket(clientAddr: InetSocketAddress, packet: Packet) = procScope.launch{
         when(packet){

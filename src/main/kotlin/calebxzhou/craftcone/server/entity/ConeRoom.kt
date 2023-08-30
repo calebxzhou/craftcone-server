@@ -78,12 +78,13 @@ data class ConeRoom(
                 push("blockData", this),
             )
         }
+
     }
 
 
     companion object {
         const val collectionName = "rooms"
-        private val dbcl = DB.getCollection<ConeRoom>(collectionName)
+        val dbcl = DB.getCollection<ConeRoom>(collectionName)
 
         //全部运行中的房间 (rid to room)
         private val runningRooms: MutableMap<ObjectId, ConeRoom> = hashMapOf()
@@ -129,10 +130,10 @@ data class ConeRoom(
 
         //当玩家加入
         suspend fun onPlayerJoin(player: ConePlayer, rid: ObjectId): Unit = runningRooms[rid]?.run {
+            logger.info { "$player 加入了房间 $this" }
             inRoomPlayers += player.id to player
             uidPlayingRooms += player.id to this
             sendPacketToAll(player, PlayerJoinedRoomS2CPacket(player.id, player.name))
-            logger.info { "$player 加入了房间 $this" }
         } ?: run {
             getById(rid)?.run {
                 runningRooms += rid to this

@@ -1,7 +1,9 @@
 package calebxzhou.craftcone.net.protocol.game
 
 import calebxzhou.craftcone.net.ConeByteBuf
+import calebxzhou.craftcone.net.ConeNetSender.sendPacket
 import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
+import calebxzhou.craftcone.net.ConePacketProcessor
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
@@ -9,6 +11,7 @@ import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConeBlockPos
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
+import kotlinx.coroutines.async
 
 /**
  * Created  on 2023-07-17,17:16.
@@ -45,7 +48,10 @@ data class BlockDataC2CPacket(
 
     override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
         playingRoom.sendPacketToAll(player,this)
-        playingRoom.writeBlock(this)
+        ConePacketProcessor.procScope.async{
+            playingRoom.writeBlock(this@BlockDataC2CPacket)
+        }.await()
+        player.sendPacket(BlockDataAckS2CPacket(dimId,bpos))
     }
 
 
