@@ -16,18 +16,13 @@ import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.net.protocol.room.CreateRoomC2SPacket
 import calebxzhou.craftcone.server.DB
 import calebxzhou.craftcone.server.logger
+import calebxzhou.craftcone.util.bsonOf
 import com.mongodb.client.model.Filters.eq
-import com.mongodb.client.model.Updates
-import com.mongodb.client.model.Updates.push
-import com.mongodb.client.model.Updates.pushEach
-import io.netty.util.internal.ConcurrentSet
+import com.mongodb.client.model.Updates.addToSet
+import com.mongodb.client.model.Updates.pull
 import kotlinx.coroutines.flow.firstOrNull
-import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
-import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.random.Random
 
 /**
@@ -43,14 +38,14 @@ data class ConeRoom(
     val seed: Long,
     val createTime: Long,
     //dimension id to saved blocks
-    val blockData: List<ConeBlockData> = arrayListOf()
+    val blockData: List<ConeBlockData>? = arrayListOf()
 ) : Packet, BufferWritable {
 
     @Transient
     val inRoomPlayers = hashMapOf<ObjectId, ConePlayer>()
 
-    @Transient
-    val writeBlockQueue =  arrayListOf<ConeBlockData>()
+    data class ReadBlockData(@BsonId val id: ObjectId, val blockData: List<ConeBlockData>? = arrayListOf())
+
     override fun write(buf: ConeByteBuf) {
         buf.writeObjectId(id)
         buf.writeUtf(name)
@@ -67,13 +62,37 @@ data class ConeRoom(
 
 
     //读方块并执行操作
-    suspend fun readBlock(dimId: Int, chunkPos: ConeChunkPos, doForEachBlock: (ConeBlockData) -> Unit) {
-        val query = Document("_id", id)
-            .append("blockData", Document("\$elemMatch", Document("dimId", dimId).append("chunkPos", chunkPos.asInt)))
-        dbcl.find(query).firstOrNull()?.blockData?.forEach(doForEachBlock)
-    }
+    suspend fun readBlock(dimId: Int, chunkPos: ConeChunkPos, doForEachBlock: (ConeBlockData) -> Unit) =
+        bsonOf(
+            """
+              {
+                  %project: {
+                      blockData: {
+                          %filter: {
+                              input: "%blockData",
+                              as: "block",
+                              cond: { %and: [
+                                      { %eq: ["%%block.chunkPos", ${chunkPos.asInt}] },
+                                      { %eq: ["%%block.dimId", $dimId] }
+                                  ]
+                              }
+                          }
+                      }
+                  }
+              }
+        """.trimIndent()
+        )
+            .let { listOf(it) }
+            .let { pipeline ->
+                DB.getCollection<ReadBlockData>(collectionName)
+                    .aggregate(pipeline)
+                    .firstOrNull()
+                    ?.blockData
+                    ?.forEach(doForEachBlock)
+            }
 
-    suspend fun writeBlock(packet: BlockDataC2CPacket) = packet.run{
+
+    suspend fun writeBlock(packet: BlockDataC2CPacket) = packet.run {
         ConeBlockData(
             dimId,
             bpos.asLong,
@@ -81,15 +100,15 @@ data class ConeRoom(
             stateId,
             tag
         ).run {
-            writeBlockQueue += this
-            if(writeBlockQueue.size >= 128){
-                dbcl.updateOne(
-                    eq("_id",id) ,
-                    pushEach("blockData",writeBlockQueue)
-                )
-                logger.info { "done" }
-                writeBlockQueue.clear()
-            }
+            dbcl.updateOne(
+                eq("_id", id),
+                pull("blockPos", blockPos)
+                //pushEach("blockData",writeBlockQueue)
+            )
+            dbcl.updateOne(
+                eq("_id", id),
+                addToSet("blockData", this)
+            )
         }
 
     }
@@ -107,6 +126,7 @@ data class ConeRoom(
         fun getPlayerPlayingRoom(uid: ObjectId) = uidPlayingRooms[uid]
 
         fun getRunningRoom(rid: ObjectId) = runningRooms[rid]
+
         //玩家已创建的房间
         suspend fun getPlayerOwnRoom(pid: ObjectId): ConeRoom? = dbcl.find(eq("owner._id", pid)).firstOrNull()
         suspend fun getById(id: ObjectId): ConeRoom? = dbcl.find(eq("_id", id)).firstOrNull()
@@ -176,12 +196,29 @@ data class ConeRoom(
             coneErrDialog(player, "你没有房间")
         }
 
-        suspend fun onPlayerGetMy(player: ConePlayer) = getPlayerOwnRoom(player.id)?.run{
+        suspend fun onPlayerGetMy(player: ConePlayer) = getPlayerOwnRoom(player.id)?.run {
             player.sendPacket(CopyToClipboardS2CPacket(id.toHexString()))
-            coneInfoToast(player.addr,"已经复制你的房间ID。")
-        }?: run {
+            coneInfoToast(player.addr, "已经复制你的房间ID。")
+        } ?: run {
             coneErrDialog(player, "你没有房间")
         }
 
     }
 }
+
+/*
+     db.rooms.aggregate([
+  {
+      $project: {
+          name: 1,
+          blockData: {
+              $filter: {
+                  input: "$blockData",
+                  as: "block",
+                  cond: { $eq: ["$$block.chunkPos", 65536] }
+              }
+          }
+      }
+  }
+])
+     */
