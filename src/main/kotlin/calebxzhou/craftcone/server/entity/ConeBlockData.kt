@@ -7,11 +7,11 @@ import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
  */
 data class ConeBlockData(
     val dimId:Int,
-    val blockPos: ConeBlockPos,
+    val blockPos: Long,
     val chunkPos: Int,
     val blockStateId:Int,
     val tag:String?
 ){
     val  dto
-        get() = BlockDataC2CPacket(dimId,blockPos,blockStateId,tag)
+        get() = BlockDataC2CPacket(dimId,ConeBlockPos(blockPos),blockStateId,tag)
 }

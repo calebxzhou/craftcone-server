@@ -17,11 +17,17 @@ import calebxzhou.craftcone.net.protocol.room.CreateRoomC2SPacket
 import calebxzhou.craftcone.server.DB
 import calebxzhou.craftcone.server.logger
 import com.mongodb.client.model.Filters.eq
+import com.mongodb.client.model.Updates
 import com.mongodb.client.model.Updates.push
+import com.mongodb.client.model.Updates.pushEach
+import io.netty.util.internal.ConcurrentSet
 import kotlinx.coroutines.flow.firstOrNull
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.random.Random
 
 /**
@@ -42,6 +48,9 @@ data class ConeRoom(
 
     @Transient
     val inRoomPlayers = hashMapOf<ObjectId, ConePlayer>()
+
+    @Transient
+    val writeBlockQueue =  arrayListOf<ConeBlockData>()
     override fun write(buf: ConeByteBuf) {
         buf.writeObjectId(id)
         buf.writeUtf(name)
@@ -64,23 +73,26 @@ data class ConeRoom(
         dbcl.find(query).firstOrNull()?.blockData?.forEach(doForEachBlock)
     }
 
-    //写方块
-    suspend fun writeBlock(packet: BlockDataC2CPacket) = packet.run {
+    suspend fun writeBlock(packet: BlockDataC2CPacket) = packet.run{
         ConeBlockData(
             dimId,
-            bpos,
+            bpos.asLong,
             bpos.chunkPos.asInt,
             stateId,
             tag
         ).run {
-            dbcl.updateOne(
-                eq("_id", id),
-                push("blockData", this),
-            )
+            writeBlockQueue += this
+            if(writeBlockQueue.size >= 128){
+                dbcl.updateOne(
+                    eq("_id",id) ,
+                    pushEach("blockData",writeBlockQueue)
+                )
+                logger.info { "done" }
+                writeBlockQueue.clear()
+            }
         }
 
     }
-
 
     companion object {
         const val collectionName = "rooms"
@@ -92,8 +104,9 @@ data class ConeRoom(
         //玩家id与正在游玩的房间 (pid to room)
         private val uidPlayingRooms: MutableMap<ObjectId, ConeRoom> = hashMapOf()
 
-        fun getPlayerPlayingRoom(uid: ObjectId): ConeRoom? = uidPlayingRooms[uid]
+        fun getPlayerPlayingRoom(uid: ObjectId) = uidPlayingRooms[uid]
 
+        fun getRunningRoom(rid: ObjectId) = runningRooms[rid]
         //玩家已创建的房间
         suspend fun getPlayerOwnRoom(pid: ObjectId): ConeRoom? = dbcl.find(eq("owner._id", pid)).firstOrNull()
         suspend fun getById(id: ObjectId): ConeRoom? = dbcl.find(eq("_id", id)).firstOrNull()

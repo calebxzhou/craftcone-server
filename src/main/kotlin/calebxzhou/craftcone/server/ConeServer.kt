@@ -51,11 +51,6 @@ val DB = CONF.run {
                                 Indexes.ascending("blockData.chunkPos"),
                             )
                         )
-                        //block pos unique
-                        createIndex(
-                            Indexes.ascending("blockData.blockPos.asLong"),
-                            IndexOptions().unique(true)
-                        )
                     }
                 }
             }
