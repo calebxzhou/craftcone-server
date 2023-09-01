@@ -1,6 +1,7 @@
 package calebxzhou.craftcone.server
 
 import calebxzhou.craftcone.net.ConeNetReceiver
+import calebxzhou.craftcone.server.entity.ConeBlockData
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
 import com.mongodb.client.model.IndexOptions
@@ -29,6 +30,7 @@ val PORT = CONF.port
 val DB = CONF.run {
     runBlocking {
         try {
+
             MongoClient.create(db.url).getDatabase(db.dbName).also { mdb ->
                 logger.info { "Init Database" }
                 ConePlayer.collectionName.run {
@@ -41,14 +43,25 @@ val DB = CONF.run {
                     }
                 }
                 ConeRoom.collectionName.run {
-                    mdb.getCollection<ConeRoom>(ConeRoom.collectionName).apply {
+                    mdb.getCollection<ConeRoom>(this).apply {
                         //owner id index
                         createIndex(Indexes.hashed("owner._id"))
-                        //chunk pos index
+                    }
+                }
+                ConeBlockData.collectionName.run {
+                    mdb.getCollection<ConeBlockData>(this).apply {
                         createIndex(
                             Indexes.compoundIndex(
-                                Indexes.ascending("blockData.dimId"),
-                                Indexes.ascending("blockData.chunkPos"),
+                                Indexes.ascending("roomId"),
+                                Indexes.ascending("dimId"),
+                                Indexes.ascending("chunkPosi"),
+                            )
+                        )
+                        createIndex(
+                            Indexes.compoundIndex(
+                                Indexes.ascending("roomId"),
+                                Indexes.ascending("dimId"),
+                                Indexes.ascending("blockPosl"),
                             )
                         )
                     }

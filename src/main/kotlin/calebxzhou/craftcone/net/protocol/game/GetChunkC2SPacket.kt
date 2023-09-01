@@ -5,10 +5,10 @@ import calebxzhou.craftcone.net.ConeNetSender.sendPacket
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.server.entity.ConeBlockData
 import calebxzhou.craftcone.server.entity.ConeChunkPos
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
-import calebxzhou.craftcone.server.logger
 
 /**
  * Created  on 2023-07-17,17:16.
@@ -26,7 +26,7 @@ data class GetChunkC2SPacket(
 
 
     override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
-        playingRoom.readBlock(dimId,chunkPos){
+        ConeBlockData.read(playingRoom.id,dimId,chunkPos.asInt){
             player.sendPacket(it.dto)
         }
     }
