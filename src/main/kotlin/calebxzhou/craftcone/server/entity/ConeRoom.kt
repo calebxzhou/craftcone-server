@@ -62,15 +62,16 @@ data class ConeRoom(
 
         //玩家id与正在游玩的房间 (pid to room)
         private val uidPlayingRooms: MutableMap<ObjectId, ConeRoom> = hashMapOf()
+        val onlineRooms = hashMapOf<ObjectId,ConeRoom>()
 
         fun getPlayerPlayingRoom(uid: ObjectId) = uidPlayingRooms[uid]
 
 
         //玩家已创建的房间
         suspend fun getPlayerOwnRoom(pid: ObjectId): ConeRoom? = dbcl.find(eq("owner._id", pid)).firstOrNull()
-        suspend fun getById(id: ObjectId): ConeRoom? = dbcl.find(eq("_id", id)).firstOrNull()
+        suspend fun getById(id: ObjectId): ConeRoom? = onlineRooms[id]?:dbcl.find(eq("_id", id)).firstOrNull()
 
-        //当玩家读取
+
         suspend fun onPlayerGet(player: ConePlayer, rid: ObjectId) =
             getById(rid)?.run {
                 player.sendPacket(this)
@@ -105,21 +106,25 @@ data class ConeRoom(
         }
 
         //当玩家加入
-        suspend fun onPlayerJoin(player: ConePlayer, rid: ObjectId): Unit = getById(rid)?.run {
+        suspend fun onPlayerJoin(player: ConePlayer, rid: ObjectId) = getById(rid)?.run {
             logger.info { "$player 加入了房间 $this" }
             inRoomPlayers += player.id to player
             uidPlayingRooms += player.id to this
             sendPacketToAll(player, PlayerJoinedRoomS2CPacket(player.id, player.name))
         } ?: run {
-            logger.warn { "$player 请求加入不存在的房间 $rid" }
+                logger.warn { "$player 请求加入不存在的房间 $rid" }
         }
 
-        //当玩家离开
+        //当玩家离开getById(rid)
         fun onPlayerLeave(player: ConePlayer) = uidPlayingRooms[player.id]?.run {
             inRoomPlayers -= player.id
             uidPlayingRooms -= player.id
             sendPacketToAll(player, PlayerLeftRoomS2CPacket(player.id))
             coneInfoToast(player.addr, "已退出房间 ${player.name}")
+            if(inRoomPlayers.isEmpty()){
+                onlineRooms -= id
+                logger.info { "$this 房间没人了，即将关闭" }
+            }
         }
 
 

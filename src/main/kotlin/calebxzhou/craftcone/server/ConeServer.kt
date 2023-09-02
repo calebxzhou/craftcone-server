@@ -50,6 +50,7 @@ val DB = CONF.run {
                 }
                 ConeBlockData.collectionName.run {
                     mdb.getCollection<ConeBlockData>(this).apply {
+                        createIndex(Indexes.hashed("roomId"))
                         createIndex(
                             Indexes.compoundIndex(
                                 Indexes.ascending("roomId"),

@@ -34,7 +34,7 @@ data class ConeBlockData(
             )).collect(doForEachBlock)
         }
         suspend fun clearByRoomId(roomId: ObjectId){
-            dbcl.deleteOne(
+            dbcl.deleteMany(
                 eq("roomId",roomId)
             )
         }

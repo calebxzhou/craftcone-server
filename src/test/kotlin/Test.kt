@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 /**
  * Created  on 2023-08-22,18:52.
@@ -13,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class Test {
     val testId = ObjectId("64f07fed12698d58d364d256")
     val testPlayer = ConePlayer(testId, "testPlayer", "testPwd", "2@2.2", 0)
-    val chunks = 16
+    val chunks = 32
     val blocks = chunks * 16
     @Test
     fun createRoom() {
@@ -27,6 +28,11 @@ class Test {
             ConeRoom.onPlayerJoin(testPlayer,testId)
             for(x in 0..blocks)
                 for(z in 0 .. blocks){
+                    val letters = ('a'..'z') + ('A'..'Z')
+                    val str = (1..2048)
+                        .map { letters.random() }
+                        .joinToString(separator = "")
+
                     ConeBlockPos(x,64,z).run {
                         logger.info{this}
                         ConeBlockData(
@@ -34,9 +40,8 @@ class Test {
                             0,
                             chunkPos.asInt,
                             asLong,
-                            0,
-                            ""
-                        ).write()
+                            Random.nextInt(),
+                            str).write()
                     }
                 }
         }
@@ -51,7 +56,6 @@ class Test {
                     ConeChunkPos(x,z).let { cpos->
                         logger.info { cpos }
                         ConeBlockData.read(testId,0,cpos.asInt){
-                            logger.info{it}
                             read.incrementAndGet()
                         }
 
@@ -59,5 +63,11 @@ class Test {
                 }
         }
         println(read)
+    }
+    @Test
+    fun deleteTestBlockData(){
+        runBlocking {
+            ConeBlockData.clearByRoomId(testId)
+        }
     }
 }
