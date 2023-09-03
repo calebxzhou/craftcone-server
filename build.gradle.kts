@@ -35,5 +35,5 @@ kotlin {
 }
 
 application {
-    mainClass.set("calebxzhou.craftcone.server.AppKt")
+    mainClass.set("calebxzhou.craftcone.server.ConeServerKt")
 }

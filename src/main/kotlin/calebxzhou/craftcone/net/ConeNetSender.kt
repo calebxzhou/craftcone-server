@@ -32,7 +32,7 @@ object ConeNetSender {
             packet.write(data)
             //发走
             val udpPacket = DatagramPacket(data,address)
-            ConeServer.channelFuture.channel().writeAndFlush(udpPacket)
+            ConeServer.udpChannelFuture.channel().writeAndFlush(udpPacket)
         }
 
     fun ConePlayer.sendPacket(packet: BufferWritable) {

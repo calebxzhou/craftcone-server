@@ -8,12 +8,14 @@ import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.netty.bootstrap.Bootstrap
+import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.nio.NioDatagramChannel
+import io.netty.channel.socket.nio.NioServerSocketChannel
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 
@@ -77,12 +79,12 @@ val DB = CONF.run {
 
 object ConeServer {
 
-    val channelFuture: ChannelFuture
-
+    val udpChannelFuture: ChannelFuture
+    val tcpChannelFuture: ChannelFuture
 
     init {
-        logger.info { "Starting CraftCone Server at Port $PORT" }
-        channelFuture  = Bootstrap()
+        logger.info { "Starting CraftCone UDP Server at Port $PORT" }
+        udpChannelFuture  = Bootstrap()
                 .group(NioEventLoopGroup())
                 .channel(NioDatagramChannel::class.java)
                 .option(ChannelOption.SO_BROADCAST, true)
@@ -95,6 +97,20 @@ object ConeServer {
                 })
                 .bind(PORT)
                 .syncUninterruptibly()
+        logger.info { "Starting CraftCone TCP Server at Port $PORT" }
+        tcpChannelFuture = ServerBootstrap()
+            .group(NioEventLoopGroup(),NioEventLoopGroup())
+            .channel(NioServerSocketChannel::class.java)
+            .childHandler(object : ChannelInitializer<DatagramChannel>() {
+                override fun initChannel(ch: DatagramChannel) {
+                    ch.pipeline()
+                        .addLast(ConeNetReceiver())
+                }
+
+            })
+            .bind(PORT)
+            .syncUninterruptibly()
+
     }
 }
 
