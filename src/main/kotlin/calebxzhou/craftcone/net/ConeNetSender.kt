@@ -5,11 +5,15 @@ import calebxzhou.craftcone.net.protocol.MsgLevel
 import calebxzhou.craftcone.net.protocol.MsgType
 import calebxzhou.craftcone.net.protocol.general.SysMsgS2CPacket
 import calebxzhou.craftcone.server.ConeServer
+import calebxzhou.craftcone.server.entity.ConeOnlinePlayer
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.PooledByteBufAllocator
+import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.socket.DatagramPacket
+import io.netty.handler.codec.ByteToMessageDecoder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,26 +25,16 @@ import java.net.InetSocketAddress
 object ConeNetSender {
     private val senderScope = CoroutineScope(Dispatchers.IO)
     @JvmStatic
-    fun sendPacket(address: InetSocketAddress,packet: BufferWritable) = senderScope.launch {
-            val data = ConeByteBuf(PooledByteBufAllocator.DEFAULT.directBuffer())
-            val packetId = ConePacketSet.getPacketId(packet.javaClass)?: let{
-                logger.error("找不到$packet 对应的包ID")
-                return@launch
-            }
-            data.writeByte(packetId)
-            //写入包数据
-            packet.write(data)
-            //发走
-            val udpPacket = DatagramPacket(data,address)
-            ConeServer.channelFuture.channel().writeAndFlush(udpPacket)
-        }
-
-    fun ConePlayer.sendPacket(packet: BufferWritable) {
-        sendPacket(this.addr,packet)
+    fun sendPacket(ctx: ChannelHandlerContext,packet: BufferWritable) = senderScope.launch {
+        ctx.channel().writeAndFlush(packet)
     }
-    fun ConeRoom.sendPacketToAll(sender:ConePlayer,packet: BufferWritable){
+
+    fun ConeOnlinePlayer.sendPacket(packet: BufferWritable) {
+        sendPacket(this.ctx,packet)
+    }
+    fun ConeRoom.sendPacketToAll(sender:ConeOnlinePlayer,packet: BufferWritable){
         inRoomPlayers.forEach {
-            if (sender.addr != it.value.addr) {
+            if (sender.ctx != it.value.ctx) {
                 sendPacket(it.value.addr,packet)
             }
         }
@@ -50,17 +44,17 @@ object ConeNetSender {
 fun coneErrDialog(player: ConePlayer, msg:String){
     coneErrDialog(player.addr,msg)
 }
-fun coneErrDialog(clientAddress: InetSocketAddress, msg:String){
+fun coneErrDialog(ctx: ChannelHandlerContext, msg:String){
     ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Dialog,MsgLevel.Err,msg))
 }
 //客户端消息弹框
-fun coneInfoToast(clientAddress: InetSocketAddress, msg: String){
+fun coneInfoToast(ctx: ChannelHandlerContext, msg: String){
     ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Toast,MsgLevel.Info,msg))
 }
-fun coneInfoDialog(clientAddress: InetSocketAddress,msg:String){
+fun coneInfoDialog(ctx: ChannelHandlerContext,msg:String){
     ConeNetSender.sendPacket(clientAddress,SysMsgS2CPacket(MsgType.Dialog,MsgLevel.Info,msg))
 }
 //发包
-fun coneSendPacket(clientAddress: InetSocketAddress, packet: BufferWritable){
+fun coneSendPacket(ctx: ChannelHandlerContext, packet: BufferWritable){
     ConeNetSender.sendPacket(clientAddress,packet)
 }

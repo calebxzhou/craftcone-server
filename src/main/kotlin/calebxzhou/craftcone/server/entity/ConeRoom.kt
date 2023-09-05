@@ -36,7 +36,7 @@ data class ConeRoom(
 ) : Packet, BufferWritable {
 
     @Transient
-    val inRoomPlayers = hashMapOf<ObjectId, ConePlayer>()
+    val inRoomPlayers = hashMapOf<ObjectId, ConeOnlinePlayer>()
 
     data class ReadBlockData(@BsonId val id: ObjectId, val blockData: List<ConeBlockData>? = arrayListOf())
 

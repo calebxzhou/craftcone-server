@@ -6,10 +6,10 @@ import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
+import io.netty.channel.ChannelHandlerContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.net.InetSocketAddress
 
 /**
  * Created  on 2023-08-26,11:02.
@@ -17,17 +17,17 @@ import java.net.InetSocketAddress
 object ConePacketProcessor {
     val procScope = CoroutineScope(Dispatchers.Default)
     //服务端处理包
-    fun processPacket(clientAddr: InetSocketAddress, packet: Packet) = procScope.launch{
+    fun processPacket(ctx: ChannelHandlerContext, packet: Packet) = procScope.launch{
         when(packet){
             is BeforeLoginProcessable ->{
-                packet.process(clientAddr)
+                packet.process(ctx)
             }
 
-            is AfterLoginProcessable -> ConePlayer.getOnlineByAddr(clientAddr)?.run {
+            is AfterLoginProcessable -> ConePlayer.getOnlineByAddr(ctx)?.run {
                 packet.process(this)
             }
 
-            is InRoomProcessable -> ConePlayer.getOnlineByAddr(clientAddr)?.run {
+            is InRoomProcessable -> ConePlayer.getOnlineByAddr(ctx)?.run {
                 ConeRoom.getPlayerPlayingRoom(id)?.let {
                     packet.process(this,it)
                 }

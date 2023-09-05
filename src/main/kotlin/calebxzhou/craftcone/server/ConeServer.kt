@@ -1,5 +1,6 @@
 package calebxzhou.craftcone.server
 
+import calebxzhou.craftcone.net.ConeNetDecoder
 import calebxzhou.craftcone.net.ConeNetReceiver
 import calebxzhou.craftcone.server.entity.ConeBlockData
 import calebxzhou.craftcone.server.entity.ConePlayer
@@ -10,6 +11,7 @@ import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
@@ -84,14 +86,22 @@ object ConeServer {
         channelFuture = ServerBootstrap()
             .group(NioEventLoopGroup(),NioEventLoopGroup())
             .channel(NioServerSocketChannel::class.java)
+            .option(ChannelOption.SO_BACKLOG, 1024)
+            .option(ChannelOption.AUTO_CLOSE, true)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .childOption(ChannelOption.SO_KEEPALIVE, true)
+            .childOption(ChannelOption.TCP_NODELAY, true)
             .childHandler(object : ChannelInitializer<DatagramChannel>() {
                 override fun initChannel(ch: DatagramChannel) {
                     ch.pipeline()
                         .addLast(LengthFieldBasedFrameDecoder(65536,0,2,0,2))
+                        .addLast(ConeNetDecoder())
                         .addLast(ConeNetReceiver())
+
                 }
 
             })
+
             .bind(PORT)
             .syncUninterruptibly()
 

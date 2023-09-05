@@ -19,7 +19,7 @@ data class LoginByNameC2SPacket(
 
     }
 
-    override suspend fun process(clientAddress: InetSocketAddress) = ConePlayer.loginByName(clientAddress,this)
+    override suspend fun process(ctx: ChannelHandlerContext) = ConePlayer.loginByName(clientAddress,this)
 
 
 }

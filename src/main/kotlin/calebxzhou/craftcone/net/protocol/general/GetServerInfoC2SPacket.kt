@@ -18,7 +18,7 @@ class GetServerInfoC2SPacket : Packet,BeforeLoginProcessable{
         override fun read(buf: ConeByteBuf) = GetServerInfoC2SPacket()
     }
 
-    override suspend fun process(clientAddress: InetSocketAddress) {
+    override suspend fun process(ctx: ChannelHandlerContext) {
         coneSendPacket(clientAddress,ServerInfoS2CPacket(VERSION_NUM,ConePlayer.onlinePlayerCount,CONF.info.maxPlayerLimit,
             CONF.info.serverName, CONF.info.serverDescription, CONF.info.serverIconBase64))
     }

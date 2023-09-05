@@ -72,8 +72,28 @@ object ConePacketSet {
         packetTypes += PacketType.WRITE
     }
     
+    
     //客户端传入包 服务端这边创建+处理
-    fun createAndProcess(clientAddr: InetSocketAddress, packetId: Int,  data: ConeByteBuf)=
+    fun create(packetId: Int,data: ConeByteBuf) :Packet?= packetTypes.getOrNull(packetId)?.run {
+        when(this){
+            PacketType.READ ->{
+                packetIdReaders[packetId] ?.invoke(data)?.let {
+                    return it
+                }?:run{
+                    return null
+                }
+            }
+            else -> {
+                return null
+            }
+        }
+    }?:run {
+        logger.error { "找不到ID$packetId 的包" }
+        return null
+    }
+        
+    
+   /* fun createAndProcess(clientctx: ChannelHandlerContext, packetId: Int,  data: ConeByteBuf)=
         packetTypes.getOrNull(packetId)?.run {
             when(this){
                 PacketType.READ ->{
@@ -90,7 +110,7 @@ object ConePacketSet {
         }?:run {
             logger.error { "找不到ID$packetId 的包" }
         }
-
+*/
     fun getPacketId(packetClass: Class<out BufferWritable>): Int? = packetWriterClassIds[packetClass]
 
 

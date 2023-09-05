@@ -5,6 +5,7 @@ import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConePlayer
+import io.netty.channel.ChannelHandlerContext
 import org.bson.types.ObjectId
 import java.net.InetSocketAddress
 
@@ -22,7 +23,7 @@ data class LoginByUidC2SPacket(
         override fun read(buf: ConeByteBuf) = LoginByUidC2SPacket(ObjectId(buf.readUtf()), buf.readUtf())
     }
 
-    override suspend fun process(clientAddress: InetSocketAddress) = ConePlayer.loginByUid(clientAddress,this)
+    override suspend fun process(ctx: ChannelHandlerContext) = ConePlayer.loginByUid(ctx,this)
 
 
 }
