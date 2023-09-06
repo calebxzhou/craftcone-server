@@ -1,21 +1,21 @@
 package calebxzhou.craftcone.net.protocol.game
 
-import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
 import calebxzhou.craftcone.net.protocol.BufferReadable
-import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConeBlockData
 import calebxzhou.craftcone.server.entity.ConeBlockPos
-import calebxzhou.craftcone.server.entity.ConePlayer
+import calebxzhou.craftcone.server.entity.ConeOnlinePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
+import calebxzhou.craftcone.util.ByteBufUt.readUtf
+import calebxzhou.craftcone.util.ByteBufUt.readVarInt
+import io.netty.buffer.ByteBuf
 
 /**
  * Created  on 2023-07-17,17:16.
  */
-//请求方块响应
-data class BlockDataC2CPacket(
+data class SetBlockC2SPacket(
     //维度ID
     val dimId: Int,
     //方块位置
@@ -24,9 +24,9 @@ data class BlockDataC2CPacket(
     val stateId: Int,
     //nbt
     val tag: String?
-) : Packet, BufferWritable,InRoomProcessable {
-    companion object : BufferReadable<BlockDataC2CPacket> {
-        override fun read(buf: ConeByteBuf) = BlockDataC2CPacket(
+) : Packet,InRoomProcessable {
+    companion object : BufferReadable<SetBlockC2SPacket> {
+        override fun read(buf: ByteBuf) = SetBlockC2SPacket(
             buf.readVarInt(),
             buf.readLong(),
             buf.readVarInt(),
@@ -34,18 +34,8 @@ data class BlockDataC2CPacket(
         )
 
     }
-
-
-
-    override fun write(buf: ConeByteBuf) {
-        buf.writeVarInt(dimId)
-        buf.writeLong(bposl)
-        buf.writeVarInt(stateId)
-        buf.writeUtf(tag?:"")
-    }
-
-    override suspend fun process(player: ConePlayer, playingRoom: ConeRoom) {
-        playingRoom.sendPacketToAll(player,this)
+    override suspend fun process(player: ConeOnlinePlayer, playingRoom: ConeRoom) {
+        playingRoom.sendPacketToAll(player,BlockDataS2CPacket(dimId, bposl, stateId, tag))
         ConeBlockData(
             playingRoom.id,
             dimId,

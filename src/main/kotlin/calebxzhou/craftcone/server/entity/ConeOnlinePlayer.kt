@@ -9,7 +9,10 @@ data class ConeOnlinePlayer(val data: ConePlayer,val ctx:ChannelHandlerContext){
         private val onlinePlayers = hashMapOf<ObjectId, ConeOnlinePlayer>()
         //玩家ip to 玩家
         private val netContextToPlayer = hashMapOf<ChannelHandlerContext, ConeOnlinePlayer>()
-
+        val onlinePlayerCount
+            get() = onlinePlayers.size
+        //根据ip地址获取在线玩家
+        fun getByNetCtx(ctx :ChannelHandlerContext): ConeOnlinePlayer? = netContextToPlayer[ctx]
         fun goOnline(onlinePlayer: ConeOnlinePlayer){
             onlinePlayers += onlinePlayer.data.id to onlinePlayer
             netContextToPlayer += onlinePlayer.ctx to onlinePlayer

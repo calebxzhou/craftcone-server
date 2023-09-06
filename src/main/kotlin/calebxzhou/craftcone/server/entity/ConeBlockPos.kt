@@ -1,7 +1,5 @@
 package calebxzhou.craftcone.server.entity
 
-import kotlinx.serialization.Serializable
-
 /**
  * Created  on 2023-08-06,13:49.
  */

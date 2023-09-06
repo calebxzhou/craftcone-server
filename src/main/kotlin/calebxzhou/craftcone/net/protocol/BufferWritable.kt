@@ -1,6 +1,5 @@
 package calebxzhou.craftcone.net.protocol
 
-import calebxzhou.craftcone.net.ConeByteBuf
 import io.netty.buffer.ByteBuf
 
 /**

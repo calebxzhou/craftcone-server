@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.server.entity
 
-import calebxzhou.craftcone.net.protocol.game.BlockDataC2CPacket
+import calebxzhou.craftcone.net.protocol.game.BlockDataS2CPacket
 import calebxzhou.craftcone.server.DB
 import com.mongodb.client.model.Filters.and
 import com.mongodb.client.model.Filters.eq
@@ -20,7 +20,7 @@ data class ConeBlockData(
     val tag: String?
 ) {
     val dto
-        get() = BlockDataC2CPacket(dimId, blockPosl, blockStateId, tag)
+        get() = BlockDataS2CPacket(dimId, blockPosl, blockStateId, tag)
 
     companion object {
         const val collectionName = "blocks"

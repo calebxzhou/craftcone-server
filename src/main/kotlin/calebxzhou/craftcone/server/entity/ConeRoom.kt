@@ -1,6 +1,5 @@
 package calebxzhou.craftcone.server.entity
 
-import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.ConeNetSender.sendPacket
 import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
 import calebxzhou.craftcone.net.coneErrDialog
@@ -15,7 +14,11 @@ import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.net.protocol.room.CreateRoomC2SPacket
 import calebxzhou.craftcone.server.DB
 import calebxzhou.craftcone.server.logger
+import calebxzhou.craftcone.util.ByteBufUt.writeObjectId
+import calebxzhou.craftcone.util.ByteBufUt.writeUtf
+import calebxzhou.craftcone.util.ByteBufUt.writeVarInt
 import com.mongodb.client.model.Filters.eq
+import io.netty.buffer.ByteBuf
 import kotlinx.coroutines.flow.firstOrNull
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
@@ -40,7 +43,7 @@ data class ConeRoom(
 
     data class ReadBlockData(@BsonId val id: ObjectId, val blockData: List<ConeBlockData>? = arrayListOf())
 
-    override fun write(buf: ConeByteBuf) {
+    override fun write(buf: ByteBuf) {
         buf.writeObjectId(id)
         buf.writeUtf(name)
         buf.writeUtf(mcVer)
@@ -72,18 +75,18 @@ data class ConeRoom(
         suspend fun getById(id: ObjectId): ConeRoom? = onlineRooms[id]?:dbcl.find(eq("_id", id)).firstOrNull()
 
 
-        suspend fun onPlayerGet(player: ConePlayer, rid: ObjectId) =
+        suspend fun onPlayerGet(player: ConeOnlinePlayer, rid: ObjectId) =
             getById(rid)?.run {
                 player.sendPacket(this)
             } ?: run {
-                coneErrDialog(player, "找不到房间$rid")
+                coneErrDialog(player.ctx, "找不到房间$rid")
             }
 
-        suspend fun create(id: ObjectId, player: ConePlayer, pkt: CreateRoomC2SPacket) {
+        suspend fun create(id: ObjectId, player: ConeOnlinePlayer, pkt: CreateRoomC2SPacket) {
             ConeRoom(
                 id,
                 pkt.rName,
-                player,
+                player.data,
                 pkt.mcVersion,
                 pkt.isCreative,
                 pkt.blockStateAmount,
@@ -97,30 +100,30 @@ data class ConeRoom(
 
         //创建房间
         suspend fun onPlayerCreate(
-            player: ConePlayer,
+            player: ConeOnlinePlayer,
             pkt: CreateRoomC2SPacket
-        ) = getPlayerOwnRoom(player.id)?.run {
-            coneErrDialog(player, "建过房间了,ID=$id")
+        ) = getPlayerOwnRoom(player.data.id)?.run {
+            coneErrDialog(player.ctx, "建过房间了,ID=$id")
         } ?: run {
             create(ObjectId(), player, pkt)
         }
 
         //当玩家加入
-        suspend fun onPlayerJoin(player: ConePlayer, rid: ObjectId) = getById(rid)?.run {
+        suspend fun onPlayerJoin(player: ConeOnlinePlayer, rid: ObjectId) = getById(rid)?.run {
             logger.info { "$player 加入了房间 $this" }
-            inRoomPlayers += player.id to player
-            uidPlayingRooms += player.id to this
-            sendPacketToAll(player, PlayerJoinedRoomS2CPacket(player.id, player.name))
+            inRoomPlayers += player.data.id to player
+            uidPlayingRooms += player.data.id to this
+            sendPacketToAll(player, PlayerJoinedRoomS2CPacket(player.data.id, player.data.name))
         } ?: run {
                 logger.warn { "$player 请求加入不存在的房间 $rid" }
         }
 
         //当玩家离开getById(rid)
-        fun onPlayerLeave(player: ConePlayer) = uidPlayingRooms[player.id]?.run {
-            inRoomPlayers -= player.id
-            uidPlayingRooms -= player.id
-            sendPacketToAll(player, PlayerLeftRoomS2CPacket(player.id))
-            coneInfoToast(player.addr, "已退出房间 ${player.name}")
+        fun onPlayerLeave(player: ConeOnlinePlayer) = uidPlayingRooms[player.data.id]?.run {
+            inRoomPlayers -= player.data.id
+            uidPlayingRooms -= player.data.id
+            sendPacketToAll(player, PlayerLeftRoomS2CPacket(player.data.id))
+            coneInfoToast(player.ctx, "已退出房间 ${player.data.name}")
             if(inRoomPlayers.isEmpty()){
                 onlineRooms -= id
                 logger.info { "$this 房间没人了，即将关闭" }
@@ -129,21 +132,21 @@ data class ConeRoom(
 
 
         //当玩家删除
-        suspend fun onPlayerDelete(player: ConePlayer) = getPlayerOwnRoom(player.id)?.run {
+        suspend fun onPlayerDelete(player: ConeOnlinePlayer) = getPlayerOwnRoom(player.data.id)?.run {
             if (dbcl.deleteOne(eq("_id", id)).deletedCount > 0) {
                 ConeBlockData.clearByRoomId(id)
-                coneInfoToast(player.addr, "成功删除房间")
+                coneInfoToast(player.ctx, "成功删除房间")
                 player.sendPacket(CloseScreenS2CPacket())
             }
         } ?: run {
-            coneErrDialog(player, "你没有房间")
+            coneErrDialog(player.ctx, "你没有房间")
         }
 
-        suspend fun onPlayerGetMy(player: ConePlayer) = getPlayerOwnRoom(player.id)?.run {
+        suspend fun onPlayerGetMy(player: ConeOnlinePlayer) = getPlayerOwnRoom(player.data.id)?.run {
             player.sendPacket(CopyToClipboardS2CPacket(id.toHexString()))
-            coneInfoToast(player.addr, "已经复制你的房间ID。")
+            coneInfoToast(player.ctx, "已经复制你的房间ID。")
         } ?: run {
-            coneErrDialog(player, "你没有房间")
+            coneErrDialog(player.ctx, "你没有房间")
         }
 
     }

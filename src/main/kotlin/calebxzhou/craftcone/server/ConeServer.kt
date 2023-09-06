@@ -1,6 +1,7 @@
 package calebxzhou.craftcone.server
 
 import calebxzhou.craftcone.net.ConeNetDecoder
+import calebxzhou.craftcone.net.ConeNetEncoder
 import calebxzhou.craftcone.net.ConeNetReceiver
 import calebxzhou.craftcone.server.entity.ConeBlockData
 import calebxzhou.craftcone.server.entity.ConePlayer
@@ -97,6 +98,7 @@ object ConeServer {
                         .addLast(LengthFieldBasedFrameDecoder(65536,0,2,0,2))
                         .addLast(ConeNetDecoder())
                         .addLast(ConeNetReceiver())
+                        .addLast(ConeNetEncoder())
 
                 }
 

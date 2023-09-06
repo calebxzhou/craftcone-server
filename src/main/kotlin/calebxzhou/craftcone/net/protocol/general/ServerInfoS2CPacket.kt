@@ -1,9 +1,11 @@
 package calebxzhou.craftcone.net.protocol.general
 
-import calebxzhou.craftcone.net.ConeByteBuf
 import calebxzhou.craftcone.net.protocol.BufferWritable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.VERSION_NUM
+import calebxzhou.craftcone.util.ByteBufUt.writeUtf
+import calebxzhou.craftcone.util.ByteBufUt.writeVarInt
+import io.netty.buffer.ByteBuf
 
 /**
  * Created  on 2023-08-26,21:05.
@@ -17,7 +19,7 @@ data class ServerInfoS2CPacket(
     //base64-encoded
     val icon:String,
 ) : Packet,BufferWritable{
-    override fun write(buf: ConeByteBuf){
+    override fun write(buf: ByteBuf){
         buf.writeVarInt(version)
             .writeVarInt(onlinePlayers)
             .writeVarInt(maxPlayers)

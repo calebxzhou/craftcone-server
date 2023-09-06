@@ -10,7 +10,7 @@ import calebxzhou.craftcone.net.protocol.general.*
 import calebxzhou.craftcone.net.protocol.room.*
 import calebxzhou.craftcone.server.entity.ConeRoom
 import calebxzhou.craftcone.server.logger
-import java.net.InetSocketAddress
+import io.netty.buffer.ByteBuf
 
 /**
  * Created  on 2023-07-14,8:55.
@@ -24,7 +24,7 @@ object ConePacketSet {
     //包writer/reader种类 [id]
     private val packetTypes = arrayListOf<PacketType>()
     //c2s
-    private val packetIdReaders = linkedMapOf<Int,(ConeByteBuf) -> Packet>()
+    private val packetIdReaders = linkedMapOf<Int,(ByteBuf) -> Packet>()
     //s2c
     private val packetWriterClassIds = linkedMapOf<Class<out BufferWritable>,Int>()
     init {
@@ -42,9 +42,7 @@ object ConePacketSet {
         registerPacket(LoginByNameC2SPacket::read)
         registerPacket(RegisterC2SPacket::read)
 
-        registerPacket(BlockDataAckS2CPacket::class.java)
-        registerPacket(BlockDataC2CPacket::class.java)
-        registerPacket(BlockDataC2CPacket::read)
+        registerPacket(BlockDataS2CPacket::class.java)
         registerPacket(GetChunkC2SPacket::read)
         registerPacket(MovePlayerWpC2SPacket::read)
         registerPacket(MovePlayerXyzC2SPacket::read)
@@ -53,6 +51,7 @@ object ConePacketSet {
         registerPacket(PlayerMoveWpS2CPacket::class.java)
         registerPacket(PlayerMoveXyzS2CPacket::class.java)
         registerPacket(SendChatMsgC2SPacket::read)
+        registerPacket(SetBlockC2SPacket::read)
 
         registerPacket(CreateRoomC2SPacket::read)
         registerPacket(DelRoomC2SPacket::read)
@@ -63,7 +62,7 @@ object ConePacketSet {
 
     }
 
-    private fun registerPacket(reader: (ConeByteBuf) -> Packet){
+    private fun registerPacket(reader: (ByteBuf) -> Packet){
         packetIdReaders += Pair (packetTypes.size,reader)
         packetTypes += PacketType.READ
     }
@@ -74,7 +73,7 @@ object ConePacketSet {
     
     
     //客户端传入包 服务端这边创建+处理
-    fun create(packetId: Int,data: ConeByteBuf) :Packet?= packetTypes.getOrNull(packetId)?.run {
+    fun create(packetId: Int,data: ByteBuf) :Packet?= packetTypes.getOrNull(packetId)?.run {
         when(this){
             PacketType.READ ->{
                 packetIdReaders[packetId] ?.invoke(data)?.let {
@@ -93,7 +92,7 @@ object ConePacketSet {
     }
         
     
-   /* fun createAndProcess(clientctx: ChannelHandlerContext, packetId: Int,  data: ConeByteBuf)=
+   /* fun createAndProcess(clientctx: ChannelHandlerContext, packetId: Int,  data: ByteBuf)=
         packetTypes.getOrNull(packetId)?.run {
             when(this){
                 PacketType.READ ->{
