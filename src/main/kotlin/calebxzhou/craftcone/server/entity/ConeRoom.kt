@@ -72,7 +72,8 @@ data class ConeRoom(
 
         //玩家已创建的房间
         suspend fun getPlayerOwnRoom(pid: ObjectId): ConeRoom? = dbcl.find(eq("owner._id", pid)).firstOrNull()
-        suspend fun getById(id: ObjectId): ConeRoom? = onlineRooms[id]?:dbcl.find(eq("_id", id)).firstOrNull()
+        suspend fun getById(id: ObjectId): ConeRoom? = onlineRooms[id]?: dbcl.find(eq("_id", id)).firstOrNull()
+
 
 
         suspend fun onPlayerGet(player: ConeOnlinePlayer, rid: ObjectId) =
@@ -110,12 +111,13 @@ data class ConeRoom(
 
         //当玩家加入
         suspend fun onPlayerJoin(player: ConeOnlinePlayer, rid: ObjectId) = getById(rid)?.run {
-            logger.info { "$player 加入了房间 $this" }
+            logger.info { "$player joined Room  $this" }
             inRoomPlayers += player.data.id to player
             uidPlayingRooms += player.data.id to this
+            onlineRooms += id to this
             sendPacketToAll(player, PlayerJoinedRoomS2CPacket(player.data.id, player.data.name))
         } ?: run {
-                logger.warn { "$player 请求加入不存在的房间 $rid" }
+            logger.warn { "$player joining room not exists $rid" }
         }
 
         //当玩家离开getById(rid)

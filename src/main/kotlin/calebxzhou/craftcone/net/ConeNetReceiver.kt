@@ -1,6 +1,8 @@
 package calebxzhou.craftcone.net
 
 import calebxzhou.craftcone.net.protocol.Packet
+import calebxzhou.craftcone.net.protocol.general.ServerInfoS2CPacket
+import calebxzhou.craftcone.server.entity.ConeOnlinePlayer
 import calebxzhou.craftcone.server.logger
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
@@ -22,7 +24,14 @@ class ConeNetReceiver : SimpleChannelInboundHandler<Packet>() {
         ctx.close()
     }
 
-    override fun channelReadComplete(ctx: ChannelHandlerContext) {
-        ctx.flush()
+    override fun channelActive(ctx: ChannelHandlerContext) {
+        logger.info { "${ctx.channel().remoteAddress()} connected" }
+        ConeNetSender.sendPacket(ctx,ServerInfoS2CPacket)
     }
+
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        logger.info { "${ctx.channel().remoteAddress()} disconnected" }
+        ConeOnlinePlayer.getByNetCtx(ctx)?.let { ConeOnlinePlayer.goOffline(it) }
+    }
+
 }

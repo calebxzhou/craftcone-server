@@ -4,9 +4,6 @@ import calebxzhou.craftcone.net.coneSendPacket
 import calebxzhou.craftcone.net.protocol.BeforeLoginProcessable
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.Packet
-import calebxzhou.craftcone.server.CONF
-import calebxzhou.craftcone.server.VERSION_NUM
-import calebxzhou.craftcone.server.entity.ConeOnlinePlayer
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 
@@ -19,7 +16,6 @@ class GetServerInfoC2SPacket : Packet,BeforeLoginProcessable{
     }
 
     override suspend fun process(ctx: ChannelHandlerContext) {
-        coneSendPacket(ctx,ServerInfoS2CPacket(VERSION_NUM,ConeOnlinePlayer.onlinePlayerCount,CONF.info.maxPlayerLimit,
-            CONF.info.serverName, CONF.info.serverDescription, CONF.info.serverIconBase64))
+        coneSendPacket(ctx,ServerInfoS2CPacket)
     }
 }

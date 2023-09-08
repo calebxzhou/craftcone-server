@@ -6,6 +6,7 @@ import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
 import calebxzhou.craftcone.server.entity.ConeOnlinePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
+import calebxzhou.craftcone.server.logger
 import io.netty.channel.ChannelHandlerContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,8 @@ object ConePacketProcessor {
             is InRoomProcessable -> ConeOnlinePlayer.getByNetCtx(ctx)?.let { player ->
                 ConeRoom.getPlayerPlayingRoom(player.data.id)?.let { room ->
                     packet.process(player,room)
+                }?:run {
+                    logger.info{ "Player ${player.data} send an InRoomPacket but not in room!" }
                 }
             }
 

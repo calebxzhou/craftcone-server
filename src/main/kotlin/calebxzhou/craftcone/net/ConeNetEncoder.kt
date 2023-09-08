@@ -11,6 +11,7 @@ class ConeNetEncoder : MessageToByteEncoder<BufferWritable>() {
         ConePacketSet.getPacketId(packet.javaClass)?.let { packetId->
             data.writeByte(packetId)
             packet.write(data)
+            logger.debug { "Packet ${packet.javaClass.simpleName} encoding with ID $packetId, size ${data.readableBytes()}" }
         }?: let{
             logger.error("找不到$packet 对应的包ID")
         }

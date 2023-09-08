@@ -4,6 +4,9 @@ import io.netty.channel.ChannelHandlerContext
 import org.bson.types.ObjectId
 
 data class ConeOnlinePlayer(val data: ConePlayer,val ctx:ChannelHandlerContext){
+    override fun toString(): String {
+        return data.toString()
+    }
     companion object{
         //全部在线玩家
         private val onlinePlayers = hashMapOf<ObjectId, ConeOnlinePlayer>()

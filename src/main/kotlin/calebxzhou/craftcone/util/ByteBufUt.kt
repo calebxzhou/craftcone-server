@@ -17,6 +17,7 @@ fun getVarLongSize(input: Long): Int {
     }
     return 10
 }
+    @JvmStatic
 fun getVarIntSize(input: Int): Int {
     for (i in 1..4) {
         if (input and (-1 shl i * 7) == 0) {
@@ -28,13 +29,20 @@ fun getVarIntSize(input: Int): Int {
 private fun getMaxEncodedUtfLength(i: Int): Int {
     return i * 3
 }
+/*fun ByteBuf.writeObjectId(objectId: ObjectId) : ByteBuf{
+    writeUtf(objectId.toHexString())
+    return this
+}
+fun ByteBuf.readObjectId():ObjectId = ObjectId(
+    readUtf()
+)*/
 fun ByteBuf.writeObjectId(objectId: ObjectId) : ByteBuf{
     writeBytes(objectId.toByteArray())
     return this
 }
-fun ByteBuf.readObjectId():ObjectId = ObjectId(
-    readBytes(12).nioBuffer()
-)
+    fun ByteBuf.readObjectId(): ObjectId = ObjectId(
+        readBytes(12).nioBuffer()
+    )
 fun ByteBuf.readUtf(): String  {
     return this.readUtf(32767)
 }
@@ -49,7 +57,7 @@ fun ByteBuf.readUtf(i: Int): String  {
     } else {
         val string = this.toString(this.readerIndex(), k, StandardCharsets.UTF_8)
         this.readerIndex(this.readerIndex() + k)
-        if (string!!.length > i) {
+        if (string.length > i) {
             val var10002 = string.length
             throw DecoderException("The received string length is longer than maximum allowed ($var10002 > $i)")
         } else {

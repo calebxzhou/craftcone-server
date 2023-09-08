@@ -6,6 +6,7 @@ import calebxzhou.craftcone.net.protocol.MsgType
 import calebxzhou.craftcone.net.protocol.general.SysMsgS2CPacket
 import calebxzhou.craftcone.server.entity.ConeOnlinePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
+import calebxzhou.craftcone.server.logger
 import io.netty.channel.ChannelHandlerContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +19,7 @@ object ConeNetSender {
     private val senderScope = CoroutineScope(Dispatchers.IO)
     @JvmStatic
     fun sendPacket(ctx: ChannelHandlerContext,packet: BufferWritable) = senderScope.launch {
+        logger.debug { "start sending packet ${packet.javaClass.simpleName}" }
         ctx.channel().writeAndFlush(packet)
     }
 

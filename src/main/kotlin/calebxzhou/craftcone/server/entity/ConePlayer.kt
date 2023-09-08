@@ -9,6 +9,7 @@ import calebxzhou.craftcone.net.protocol.account.LoginByUidC2SPacket
 import calebxzhou.craftcone.net.protocol.account.RegisterC2SPacket
 import calebxzhou.craftcone.net.protocol.general.OkDataS2CPacket
 import calebxzhou.craftcone.server.DB
+import calebxzhou.craftcone.server.logger
 import calebxzhou.craftcone.util.ByteBufUt.writeObjectId
 import com.mongodb.client.model.Filters.eq
 import io.netty.channel.ChannelHandlerContext
@@ -73,6 +74,7 @@ data class ConePlayer(
                 coneErrDialog(ctx, "密码错误")
                 return
             }
+            logger.info { "$player 已登录" }
             ConeOnlinePlayer.goOnline(ConeOnlinePlayer(player,ctx))
             coneSendPacket(ctx, OkDataS2CPacket{it.writeObjectId(player.id)})
             coneInfoToast(ctx, "登录成功")

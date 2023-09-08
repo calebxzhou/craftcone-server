@@ -1,8 +1,6 @@
 package calebxzhou.craftcone.server
 
-import calebxzhou.craftcone.net.ConeNetDecoder
-import calebxzhou.craftcone.net.ConeNetEncoder
-import calebxzhou.craftcone.net.ConeNetReceiver
+import calebxzhou.craftcone.net.*
 import calebxzhou.craftcone.server.entity.ConeBlockData
 import calebxzhou.craftcone.server.entity.ConePlayer
 import calebxzhou.craftcone.server.entity.ConeRoom
@@ -14,9 +12,8 @@ import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.DatagramChannel
+import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 
@@ -92,13 +89,14 @@ object ConeServer {
             .option(ChannelOption.SO_REUSEADDR, true)
             .childOption(ChannelOption.SO_KEEPALIVE, true)
             .childOption(ChannelOption.TCP_NODELAY, true)
-            .childHandler(object : ChannelInitializer<DatagramChannel>() {
-                override fun initChannel(ch: DatagramChannel) {
+            .childHandler(object : ChannelInitializer<SocketChannel>() {
+                override fun initChannel(ch: SocketChannel) {
                     ch.pipeline()
-                        .addLast(LengthFieldBasedFrameDecoder(65536,0,2,0,2))
-                        .addLast(ConeNetDecoder())
-                        .addLast(ConeNetReceiver())
-                        .addLast(ConeNetEncoder())
+                        .addLast("splitter",   Varint21FrameDecoder())
+                        .addLast("prepender",   Varint21LengthFieldPrepender())
+                        .addLast("decoder",ConeNetDecoder())
+                        .addLast("packet_handler",ConeNetReceiver())
+                        .addLast("encoder",ConeNetEncoder())
 
                 }
 

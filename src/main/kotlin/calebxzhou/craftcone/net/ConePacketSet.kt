@@ -20,7 +20,6 @@ object ConePacketSet {
         READ,WRITE
     }
 
-
     //包writer/reader种类 [id]
     private val packetTypes = arrayListOf<PacketType>()
     //c2s
@@ -77,6 +76,8 @@ object ConePacketSet {
         when(this){
             PacketType.READ ->{
                 packetIdReaders[packetId] ?.invoke(data)?.let {
+                    logger.debug { "creating packet ${it.javaClass.simpleName} with ID $packetId" }
+                    data.readerIndex(data.readerIndex() + data.readableBytes())
                     return it
                 }?:run{
                     return null
