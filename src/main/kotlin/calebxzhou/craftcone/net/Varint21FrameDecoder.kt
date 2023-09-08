@@ -1,53 +1,43 @@
-package calebxzhou.craftcone.net;
+package calebxzhou.craftcone.net
+
+import calebxzhou.craftcone.util.ByteBufUt.readVarInt
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.ByteToMessageDecoder
+import io.netty.handler.codec.CorruptedFrameException
 
 /**
  * Created  on 2023-09-08,19:25.
  */
-
-import calebxzhou.craftcone.util.ByteBufUt;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.CorruptedFrameException;
-
-import java.util.List;
-
 /**
- * Counterpart to {@link Varint21LengthFieldPrepender}. Decodes each frame ("packet") by first reading its length and then its data.
+ * Counterpart to [Varint21LengthFieldPrepender]. Decodes each frame ("packet") by first reading its length and then its data.
  */
-public class Varint21FrameDecoder extends ByteToMessageDecoder {
-    @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
-        byteBuf.markReaderIndex();
-        byte[] bs = new byte[3];
-
-        for(int i = 0; i < bs.length; ++i) {
-            if (!byteBuf.isReadable()) {
-                byteBuf.resetReaderIndex();
-                return;
+class Varint21FrameDecoder : ByteToMessageDecoder() {
+    override fun decode(channelHandlerContext: ChannelHandlerContext, byteBuf: ByteBuf, list: MutableList<Any>) {
+        byteBuf.markReaderIndex()
+        val bs = ByteArray(3)
+        for (i in bs.indices) {
+            if (!byteBuf.isReadable) {
+                byteBuf.resetReaderIndex()
+                return
             }
-
-            bs[i] = byteBuf.readByte();
+            bs[i] = byteBuf.readByte()
             if (bs[i] >= 0) {
-                ByteBuf friendlyByteBuf = (Unpooled.wrappedBuffer(bs));
-
+                val friendlyByteBuf = Unpooled.wrappedBuffer(bs)
                 try {
-                    int j = ByteBufUt.INSTANCE.readVarInt(friendlyByteBuf);
+                    val j = friendlyByteBuf.readVarInt()
                     if (byteBuf.readableBytes() >= j) {
-                        list.add(byteBuf.readBytes(j));
-                        return;
+                        list.add(byteBuf.readBytes(j))
+                        return
                     }
-
-                    byteBuf.resetReaderIndex();
+                    byteBuf.resetReaderIndex()
                 } finally {
-                    friendlyByteBuf.release();
+                    friendlyByteBuf.release()
                 }
-
-                return;
+                return
             }
         }
-
-        throw new CorruptedFrameException("length wider than 21-bit");
+        throw CorruptedFrameException("length wider than 21-bit")
     }
 }
