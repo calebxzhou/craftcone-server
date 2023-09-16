@@ -1,6 +1,6 @@
 package calebxzhou.craftcone.net.protocol.game
 
-import calebxzhou.craftcone.net.ConeNetSender.sendPacket
+import calebxzhou.craftcone.net.ConeNetSender.sendPacketToAll
 import calebxzhou.craftcone.net.protocol.BufferReadable
 import calebxzhou.craftcone.net.protocol.InRoomProcessable
 import calebxzhou.craftcone.net.protocol.Packet
@@ -20,7 +20,7 @@ data class MovePlayerWpC2SPacket(
     }
 
     override suspend fun process(player: ConeOnlinePlayer, playingRoom: ConeRoom) {
-        player.sendPacket(PlayerMoveWpS2CPacket(player.data.id,w,p))
+        playingRoom.sendPacketToAll(player,PlayerMoveWpS2CPacket(player.data.id,w,p))
     }
 
 
